@@ -1,5 +1,5 @@
 // ── Base API Configuration ─────────────────────
-const BASE_URL = "https://rythustore-backend-production.up.railway.app";
+const BASE_URL = "https://rythustore-backend-production.up.railway.app/api";
 
 // ── Get token from storage ─────────────────────
 const getToken = () => localStorage.getItem("token");

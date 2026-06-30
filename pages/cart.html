@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <nav class="nav-tabs">
+    <a href="../index.html"                        class="nav-tab">Home</a>
+    <a href="products.html?category=SEEDS"        class="nav-tab">Seeds</a>
+    <a href="products.html?category=PESTICIDES"   class="nav-tab">Pesticides</a>
+    <a href="products.html?category=INSECTICIDES" class="nav-tab">Insecticides</a>
+    <a href="products.html?category=ORGANIC"      class="nav-tab">Organic</a>
+  </nav>
+
+  <div class="cart-container">
+    <div class="page-header" style="padding:20px 0">
+      <div class="page-title">My Cart</div>
+      <button class="btn btn-outline" onclick="handleClearCart()" id="clear-btn" style="display:none">Clear Cart</button>
+    </div>
+
+    <div id="cart-items">
+      <div class="loading">Loading cart...</div>
+    </div>
+
+    <div class="cart-summary" id="cart-summary" style="display:none">
+      <div class="cart-total">
+        <span>Total Amount</span>
+        <span id="cart-total">₹0</span>
+      </div>
+      <button class="btn btn-primary" onclick="goToCheckout()">Proceed to Checkout</button>
+    </div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+
+    window.onload = async () => {
+      if (!isLoggedIn()) { window.location.href = "login.html"; return; }
+      renderHeader("../");
+      renderDrawer("../");
+      loadCart();
+    };
+
+    const loadCart = async () => {
+      const cartItemsEl  = document.getElementById("cart-items");
+      const cartSummary  = document.getElementById("cart-summary");
+      const clearBtn     = document.getElementById("clear-btn");
+      const data         = await getCart();
+
+      if (!data.success) {
+        cartItemsEl.innerHTML = `<div class="empty-state"><p>Could not load cart!</p></div>`;
+        return;
+      }
+
+      if (data.items.length === 0) {
+        cartItemsEl.innerHTML = `
+          <div class="empty-state">
+            <p>Your cart is empty!</p>
+            <a href="products.html" style="color:var(--green700);font-weight:700;margin-top:12px;display:block">
+              Browse Products →
+            </a>
+          </div>`;
+        cartSummary.style.display = "none";
+        clearBtn.style.display    = "none";
+        return;
+      }
+
+      cartItemsEl.innerHTML             = data.items.map(item => renderCartItem(item)).join("");
+      cartSummary.style.display         = "block";
+      clearBtn.style.display            = "block";
+      document.getElementById("cart-total").textContent  = `₹${data.total.toFixed(2)}`;
+      document.getElementById("cart-count").textContent  = data.count;
+      refreshIcons();
+    };
+
+    const changeQty = async (id, newQty) => {
+      if (newQty < 1) { removeItem(id); return; }
+      await updateCartItem(id, newQty);
+      loadCart();
+    };
+
+    const removeItem = async (id) => {
+      await removeFromCart(id);
+      showNotification("Item removed from cart!", "success", "trash-2");
+      loadCart();
+    };
+
+    const handleClearCart = async () => {
+      if (!confirm("Clear entire cart?")) return;
+      await clearCart();
+      showNotification("Cart cleared!", "success", "trash-2");
+      loadCart();
+    };
+
+    const goToCheckout = () => {
+      window.location.href = "checkout.html";
+    };
+
+  </script>
+</body>
+</html>

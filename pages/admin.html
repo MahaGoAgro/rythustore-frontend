@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .admin-container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .admin-grid { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+    .admin-form {
+      background: white; border-radius: 20px; padding: 24px; box-shadow: var(--shadow);
+      border: 1px solid var(--border); position: sticky; top: 80px;
+    }
+    .admin-form-title { font-size: 18px; font-weight: 800; color: var(--green900); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .admin-form .form-group input,
+    .admin-form .form-group select,
+    .admin-form .form-group textarea {
+      width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+      font-size: 13px; color: var(--text); background: white; outline: none; transition: border 0.2s; font-family: inherit;
+    }
+    .admin-form .form-group input:focus,
+    .admin-form .form-group select:focus,
+    .admin-form .form-group textarea:focus { border-color: var(--green500); }
+    .admin-form .form-group label { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 5px; display: block; }
+    .admin-form .form-group { margin-bottom: 12px; }
+    .required { color: #DC2626; }
+
+    .admin-products { background: white; border-radius: 20px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .admin-products-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .admin-products-title { font-size: 18px; font-weight: 800; color: var(--green900); }
+    .admin-search { padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 13px; outline: none; width: 200px; }
+    .admin-search:focus { border-color: var(--green500); }
+
+    .product-row {
+      display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px;
+      border: 1px solid var(--border); margin-bottom: 10px; transition: box-shadow 0.2s; flex-wrap: wrap;
+    }
+    .product-row:hover { box-shadow: var(--shadow); }
+    .product-row-img {
+      width: 56px; height: 56px; background: var(--green100); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; color: var(--green600); flex-shrink: 0; overflow: hidden;
+    }
+    .product-row-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+    .product-row-info { flex: 1; min-width: 140px; }
+    .product-row-name { font-weight: 700; font-size: 14px; color: var(--text); }
+    .product-row-meta { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .product-row-pricing { text-align: right; min-width: 90px; }
+    .price-original { text-decoration: line-through; color: var(--muted); font-size: 12px; }
+    .price-discounted { font-weight: 800; font-size: 16px; color: var(--green700); }
+    .discount-badge { background: #FEF9C3; color: #A16207; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 20px; }
+    .bestseller-badge { background: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 20px; display:inline-flex; align-items:center; gap:3px; }
+    .flashsale-badge { background: #FFEDD5; color: #9A3412; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 20px; display:inline-flex; align-items:center; gap:3px; }
+    .product-row-actions { display: flex; gap: 8px; }
+    .btn-edit, .btn-delete {
+      border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+    .btn-edit { background: var(--green100); color: var(--green700); }
+    .btn-delete { background: #FEE2E2; color: #DC2626; }
+    .category-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
+    .tag-SEEDS        { background: #DCFCE7; color: #15803D; }
+    .tag-PESTICIDES   { background: #DBEAFE; color: #1D4ED8; }
+    .tag-INSECTICIDES { background: #FEF9C3; color: #A16207; }
+    .tag-ORGANIC      { background: #F0FDF4; color: #166534; }
+
+    .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: white; border-radius: 14px; padding: 16px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .stat-number { font-size: 28px; font-weight: 800; color: var(--green700); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-tab {
+      padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: white;
+      font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: all 0.2s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .filter-tab.active, .filter-tab:hover { background: var(--green700); color: white; border-color: var(--green700); }
+    .discount-auto { background: var(--green50); color: var(--green700); font-weight: 700; }
+
+    /* ── Toggle switch ── */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--green50); border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;
+    }
+    .toggle-row-label { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .toggle-switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; inset: 0; background: var(--border);
+      border-radius: 24px; transition: 0.2s;
+    }
+    .toggle-slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--green600); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+    @media (max-width: 768px) {
+      .admin-grid { grid-template-columns: 1fr; }
+      .stats-bar  { grid-template-columns: repeat(2, 1fr); }
+      .form-row   { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <div class="admin-container">
+
+    <div style="padding:20px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:22px;font-weight:800;color:var(--green900);display:flex;align-items:center;gap:8px" id="admin-title"></div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px">Manage your RythuStore products</div>
+      </div>
+      <a href="../index.html" class="btn btn-outline" id="view-store-btn" style="text-decoration:none;display:flex;align-items:center;gap:6px"></a>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-number" id="stat-total">0</div><div class="stat-label">Total Products</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-bestseller">0</div><div class="stat-label">Bestsellers</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-flashsale">0</div><div class="stat-label">In Flash Sale</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-organic">0</div><div class="stat-label">Organic</div></div>
+    </div>
+
+    <div class="admin-grid">
+
+      <div class="admin-form">
+        <div class="admin-form-title">
+          <span id="form-icon"></span>
+          <span id="form-title">Add New Product</span>
+        </div>
+
+        <div class="form-error" id="error-msg"></div>
+        <input type="hidden" id="product-id" />
+
+        <div class="form-group">
+          <label>Product Image</label>
+          <input type="file" id="imageFile" accept="image/*" onchange="previewImage(this)"
+            style="padding:8px;border:1.5px dashed var(--border);border-radius:10px;width:100%;cursor:pointer;" />
+          <div id="image-preview" style="display:none;margin-top:10px;">
+            <img id="preview-img" style="width:100%;height:150px;object-fit:cover;border-radius:10px;border:1.5px solid var(--border);" />
+            <button onclick="removeImage()" id="remove-img-btn"
+              style="margin-top:6px;background:#FEE2E2;color:#DC2626;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:4px;"></button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Product Name <span class="required">*</span></label>
+          <input type="text" id="name" placeholder="Hybrid Tomato Seeds" />
+        </div>
+
+        <div class="form-group">
+          <label>Brand <span class="required">*</span></label>
+          <input type="text" id="brand" placeholder="Syngenta" />
+        </div>
+
+        <div class="form-group">
+          <label>Category <span class="required">*</span></label>
+          <select id="category">
+            <option value="">Select category</option>
+            <option value="SEEDS">Seeds</option>
+            <option value="PESTICIDES">Pesticides</option>
+            <option value="INSECTICIDES">Insecticides</option>
+            <option value="ORGANIC">Organic</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Original Price (₹) <span class="required">*</span></label>
+            <input type="number" id="originalPrice" placeholder="499" oninput="calculateDiscount()" />
+          </div>
+          <div class="form-group">
+            <label>Discount Price (₹) <span class="required">*</span></label>
+            <input type="number" id="price" placeholder="299" oninput="calculateDiscount()" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Discount %</label>
+            <input type="number" id="discount" placeholder="Auto calculated" readonly class="discount-auto" />
+          </div>
+          <div class="form-group">
+            <label>Unit <span class="required">*</span></label>
+            <input type="text" id="unit" placeholder="10g" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description <span class="required">*</span></label>
+          <textarea id="desc" rows="3" placeholder="Product description..." style="resize:vertical"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Badge</label>
+          <input type="text" id="badge" placeholder="Best Seller" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Rating (0-5)</label>
+            <input type="number" id="rating" placeholder="4.5" min="0" max="5" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Reviews</label>
+            <input type="number" id="reviews" placeholder="234" />
+          </div>
+        </div>
+
+        <!-- ── Bestseller toggle ── -->
+        <div class="toggle-row">
+          <span class="toggle-row-label" id="bestseller-label"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="isBestseller" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- ── Flash sale end date ── -->
+        <div class="form-group">
+          <label id="flashsale-label"></label>
+          <input type="datetime-local" id="flashSaleEndsAt" />
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Leave empty to remove from flash sale</div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-primary" onclick="handleSubmit()" id="submit-btn" style="display:flex;align-items:center;justify-content:center;gap:6px;"></button>
+          <button class="btn btn-outline" onclick="resetForm()" id="cancel-btn" style="display:none">Cancel</button>
+        </div>
+      </div>
+
+      <div class="admin-products">
+        <div class="admin-products-header">
+          <div class="admin-products-title">All Products</div>
+          <input type="text" class="admin-search" id="admin-search-input" placeholder="Search..." oninput="filterProducts(this.value)" />
+        </div>
+
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterByCategory('ALL', this)">All</button>
+          <button class="filter-tab" id="tab-seeds"        onclick="filterByCategory('SEEDS', this)"></button>
+          <button class="filter-tab" id="tab-pesticides"   onclick="filterByCategory('PESTICIDES', this)"></button>
+          <button class="filter-tab" id="tab-insecticides" onclick="filterByCategory('INSECTICIDES', this)"></button>
+          <button class="filter-tab" id="tab-organic"      onclick="filterByCategory('ORGANIC', this)"></button>
+        </div>
+
+        <div id="products-list">
+          <div class="loading">Loading products...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/products.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+
+    let allProducts  = [];
+    let editingId    = null;
+    let imageBase64  = null;
+
+    const previewImage = (input) => {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Image too large! Please use an image under 2MB.");
+        input.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imageBase64 = e.target.result;
+        document.getElementById("preview-img").src = imageBase64;
+        document.getElementById("image-preview").style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    };
+
+    const removeImage = () => {
+      imageBase64 = null;
+      document.getElementById("imageFile").value = "";
+      document.getElementById("image-preview").style.display = "none";
+      document.getElementById("preview-img").src = "";
+    };
+
+    const calculateDiscount = () => {
+      const original   = parseFloat(document.getElementById("originalPrice").value);
+      const discounted = parseFloat(document.getElementById("price").value);
+      if (original && discounted && original > discounted) {
+        document.getElementById("discount").value = Math.round(((original - discounted) / original) * 100);
+      } else {
+        document.getElementById("discount").value = "";
+      }
+    };
+
+    window.onload = async () => {
+      if (!isLoggedIn()) { window.location.href = "login.html"; return; }
+      const user = getUser();
+      if (user.role !== "ADMIN") {
+        alert("Access denied! Admin only.");
+        window.location.href = "../index.html";
+        return;
+      }
+      renderHeader("../");
+      renderDrawer("../");
+
+      document.getElementById("admin-title").innerHTML    = `${icon("settings", 22)} Admin Panel`;
+      document.getElementById("view-store-btn").innerHTML = `${icon("globe", 16)} View Store`;
+      document.getElementById("form-icon").innerHTML      = icon("plus", 18);
+      document.getElementById("remove-img-btn").innerHTML = `${icon("x", 14)} Remove Image`;
+      document.getElementById("submit-btn").innerHTML     = `${icon("plus", 16)} Add Product`;
+      document.getElementById("tab-seeds").innerHTML        = `${icon("sprout", 13)} Seeds`;
+      document.getElementById("tab-pesticides").innerHTML   = `${icon("shield", 13)} Pesticides`;
+      document.getElementById("tab-insecticides").innerHTML = `${icon("bug", 13)} Insecticides`;
+      document.getElementById("tab-organic").innerHTML      = `${icon("leaf", 13)} Organic`;
+      document.getElementById("bestseller-label").innerHTML = `${icon("trophy", 14)} Mark as Bestseller`;
+      document.getElementById("flashsale-label").innerHTML  = `${icon("zap", 14)} Flash Sale Ends At`;
+      refreshIcons();
+
+      await loadProducts();
+    };
+
+    const loadProducts = async () => {
+      const data = await getProducts();
+      if (!data.success) {
+        document.getElementById("products-list").innerHTML = `<div class="empty-state"><p>Could not load products!</p></div>`;
+        return;
+      }
+      allProducts = data.products;
+      updateStats();
+      renderProducts(allProducts);
+    };
+
+    const updateStats = () => {
+      const now = new Date();
+      document.getElementById("stat-total").textContent      = allProducts.length;
+      document.getElementById("stat-bestseller").textContent = allProducts.filter(p => p.isBestseller).length;
+      document.getElementById("stat-flashsale").textContent  = allProducts.filter(p => p.flashSaleEndsAt && new Date(p.flashSaleEndsAt) > now).length;
+      document.getElementById("stat-organic").textContent    = allProducts.filter(p => p.category === "ORGANIC").length;
+    };
+
+    const renderProducts = (products) => {
+      const list = document.getElementById("products-list");
+      const now = new Date();
+
+      if (products.length === 0) {
+        list.innerHTML = `<div class="empty-state"><p>No products found!</p></div>`;
+        return;
+      }
+
+      list.innerHTML = products.map(p => {
+        const inFlashSale = p.flashSaleEndsAt && new Date(p.flashSaleEndsAt) > now;
+        return `
+        <div class="product-row" id="row-${p.id}">
+          <div class="product-row-img">
+            ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}" />` : icon("sprout", 26)}
+          </div>
+          <div class="product-row-info">
+            <div class="product-row-name">${p.name}</div>
+            <div class="product-row-meta">
+              ${p.brand}
+              <span class="category-tag tag-${p.category}">${p.category}</span>
+              ${p.rating}★
+              ${p.isBestseller ? `<span class="bestseller-badge">${icon("trophy", 10)} Bestseller</span>` : ""}
+              ${inFlashSale ? `<span class="flashsale-badge">${icon("zap", 10)} Flash Sale</span>` : ""}
+            </div>
+          </div>
+          <div class="product-row-pricing">
+            ${p.originalPrice && p.originalPrice > p.price ? `<div class="price-original">₹${p.originalPrice}</div>` : ""}
+            <div class="price-discounted">₹${p.price}</div>
+            ${p.discount > 0 ? `<span class="discount-badge">${p.discount}% OFF</span>` : ""}
+          </div>
+          <div class="product-row-actions">
+            <button class="btn-edit"   onclick="editProduct('${p.id}')">${icon("pencil", 13)} Edit</button>
+            <button class="btn-delete" onclick="handleDelete('${p.id}', '${p.name}')">${icon("trash-2", 13)} Delete</button>
+          </div>
+        </div>`;
+      }).join("");
+      refreshIcons();
+    };
+
+    const filterByCategory = (category, btn) => {
+      document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      const filtered = category === "ALL" ? allProducts : allProducts.filter(p => p.category === category);
+      renderProducts(filtered);
+    };
+
+    const filterProducts = (search) => {
+      const filtered = allProducts.filter(p =>
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.brand.toLowerCase().includes(search.toLowerCase())
+      );
+      renderProducts(filtered);
+    };
+
+    const handleSubmit = async () => {
+      const errorMsg = document.getElementById("error-msg");
+      errorMsg.style.display = "none";
+
+      const flashSaleVal = document.getElementById("flashSaleEndsAt").value;
+
+      const product = {
+        name:            document.getElementById("name").value.trim(),
+        brand:           document.getElementById("brand").value.trim(),
+        category:        document.getElementById("category").value,
+        originalPrice:   parseFloat(document.getElementById("originalPrice").value) || null,
+        price:           parseFloat(document.getElementById("price").value),
+        discount:        parseInt(document.getElementById("discount").value)   || 0,
+        unit:            document.getElementById("unit").value.trim(),
+        desc:            document.getElementById("desc").value.trim(),
+        badge:           document.getElementById("badge").value.trim()         || null,
+        rating:          parseFloat(document.getElementById("rating").value)   || 0,
+        reviews:         parseInt(document.getElementById("reviews").value)    || 0,
+        imageUrl:        imageBase64 || null,
+        isBestseller:    document.getElementById("isBestseller").checked,
+        flashSaleEndsAt: flashSaleVal ? new Date(flashSaleVal).toISOString() : null,
+      };
+
+      if (!product.name || !product.brand || !product.category ||
+          !product.price || !product.unit || !product.desc) {
+        errorMsg.textContent = "Please fill all required fields!";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      const btn = document.getElementById("submit-btn");
+      btn.innerHTML = "Saving...";
+      btn.disabled  = true;
+
+      const data = editingId
+        ? await updateProduct(editingId, product)
+        : await addProduct(product);
+
+      if (data.success) {
+        const msg = editingId ? "Product updated!" : "Product added!";
+        editingId = null;
+        resetForm();
+        await loadProducts();
+        showNotification(msg, "success", "check-circle");
+      } else {
+        errorMsg.textContent   = data.message;
+        errorMsg.style.display = "block";
+      }
+
+      btn.innerHTML = editingId ? `${icon("save", 16)} Update Product` : `${icon("plus", 16)} Add Product`;
+      btn.disabled  = false;
+      refreshIcons();
+    };
+
+    const editProduct = (id) => {
+      const p = allProducts.find(p => p.id === id);
+      if (!p) return;
+
+      editingId = id;
+
+      document.getElementById("product-id").value    = id;
+      document.getElementById("name").value          = p.name;
+      document.getElementById("brand").value         = p.brand;
+      document.getElementById("category").value      = p.category;
+      document.getElementById("originalPrice").value = p.originalPrice || "";
+      document.getElementById("price").value         = p.price;
+      document.getElementById("discount").value      = p.discount      || "";
+      document.getElementById("unit").value          = p.unit;
+      document.getElementById("desc").value          = p.desc;
+      document.getElementById("badge").value         = p.badge         || "";
+      document.getElementById("rating").value        = p.rating        || "";
+      document.getElementById("reviews").value       = p.reviews       || "";
+      document.getElementById("isBestseller").checked = !!p.isBestseller;
+
+      if (p.flashSaleEndsAt) {
+        // Convert ISO string to datetime-local input format (YYYY-MM-DDTHH:mm)
+        const d = new Date(p.flashSaleEndsAt);
+        const localISO = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById("flashSaleEndsAt").value = localISO;
+      } else {
+        document.getElementById("flashSaleEndsAt").value = "";
+      }
+
+      if (p.imageUrl) {
+        imageBase64 = p.imageUrl;
+        document.getElementById("preview-img").src         = p.imageUrl;
+        document.getElementById("image-preview").style.display = "block";
+      }
+
+      document.getElementById("form-icon").innerHTML       = icon("pencil", 18);
+      document.getElementById("form-title").textContent    = "Edit Product";
+      document.getElementById("submit-btn").innerHTML      = `${icon("save", 16)} Update Product`;
+      document.getElementById("cancel-btn").style.display  = "block";
+      refreshIcons();
+
+      document.querySelector(".admin-form").scrollIntoView({ behavior: "smooth" });
+    };
+
+    const handleDelete = async (id, name) => {
+      if (!confirm(`Delete "${name}"?\n\nThis cannot be undone!`)) return;
+      const data = await deleteProduct(id);
+      if (data.success) {
+        await loadProducts();
+        showNotification("Product deleted!", "success", "trash-2");
+      }
+    };
+
+    const resetForm = () => {
+      editingId = null;
+      ["product-id","name","brand","originalPrice","price","discount","unit","desc","badge","rating","reviews","flashSaleEndsAt"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("category").value          = "";
+      document.getElementById("isBestseller").checked    = false;
+      document.getElementById("error-msg").style.display = "none";
+      document.getElementById("form-icon").innerHTML      = icon("plus", 18);
+      document.getElementById("form-title").textContent   = "Add New Product";
+      document.getElementById("submit-btn").innerHTML     = `${icon("plus", 16)} Add Product`;
+      document.getElementById("cancel-btn").style.display = "none";
+      removeImage();
+      refreshIcons();
+    };
+
+  </script>
+</body>
+</html>

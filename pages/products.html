@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <nav class="nav-tabs">
+    <a href="../index.html"                        class="nav-tab">Home</a>
+    <a href="products.html?category=SEEDS"        class="nav-tab">Seeds</a>
+    <a href="products.html?category=PESTICIDES"   class="nav-tab">Pesticides</a>
+    <a href="products.html?category=INSECTICIDES" class="nav-tab">Insecticides</a>
+    <a href="products.html?category=ORGANIC"      class="nav-tab">Organic</a>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-title" id="page-title">All Products</div>
+    <div id="product-count" style="color:var(--muted);font-size:13px;"></div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search products..." oninput="handleSearch(this.value)" />
+  </div>
+
+  <div class="products-grid" id="products-grid">
+    <div class="loading">Loading products...</div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/products.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+
+    window.onload = async () => {
+      renderHeader("../");
+      renderDrawer("../");
+      updateCartCount();
+      loadProducts();
+      setActiveTab();
+    };
+
+    const getCategory = () => new URLSearchParams(window.location.search).get("category");
+
+    const setActiveTab = () => {
+      const category = getCategory();
+      document.querySelectorAll(".nav-tab").forEach(tab => {
+        if (category && tab.href.includes(category)) tab.classList.add("active");
+        else if (!category && tab.href.includes("index.html")) tab.classList.add("active");
+      });
+      const titles = { SEEDS:"Seeds", PESTICIDES:"Pesticides", INSECTICIDES:"Insecticides", ORGANIC:"Organic Products" };
+      if (category) document.getElementById("page-title").textContent = titles[category] || "All Products";
+    };
+
+    const loadProducts = async (search = "") => {
+      const grid     = document.getElementById("products-grid");
+      const category = getCategory();
+      grid.innerHTML = '<div class="loading">Loading products...</div>';
+
+      let data;
+      if (search)         data = await searchProducts(search);
+      else if (category)  data = await getProductsByCategory(category);
+      else                data = await getProducts();
+
+      if (!data.success || data.products.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>No products found!</p></div>`;
+        return;
+      }
+
+      document.getElementById("product-count").textContent = `${data.count} items`;
+      grid.innerHTML = data.products.map(p => renderProductCard(p)).join("");
+      refreshIcons();
+    };
+
+    let searchTimer;
+    const handleSearch = (value) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => loadProducts(value), 400);
+    };
+
+  </script>
+</body>
+</html>

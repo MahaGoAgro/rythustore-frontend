@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .success-container { max-width: 480px; margin: 40px auto; padding: 0 16px; text-align: center; }
+    .success-icon { color: var(--green600); margin-bottom: 12px; display:flex; justify-content:center; }
+    .success-title { font-size: 22px; font-weight: 800; color: var(--green900); margin-bottom: 6px; }
+    .success-sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .order-id-box { background: white; border: 1.5px dashed var(--green500); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
+    .order-id-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .order-id-value { font-size: 16px; font-weight: 800; color: var(--green700); margin-top: 4px; }
+    .success-actions { display: flex; flex-direction: column; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <div class="success-container">
+    <div class="success-icon" id="success-icon"></div>
+    <div class="success-title">Order Placed Successfully!</div>
+    <div class="success-sub">Your order is confirmed and will be processed soon.</div>
+
+    <div class="order-id-box">
+      <div class="order-id-label">Order ID</div>
+      <div class="order-id-value" id="order-id">—</div>
+    </div>
+
+    <div class="success-actions">
+      <button class="btn btn-primary" onclick="window.location.href='orders.html'" id="track-btn"></button>
+      <button class="btn btn-outline" onclick="window.location.href='products.html'" id="shop-btn"></button>
+    </div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+    window.onload = () => {
+      renderHeader("../");
+      renderDrawer("../");
+      updateCartCount();
+
+      document.getElementById("success-icon").innerHTML = icon("party-popper", 64);
+      document.getElementById("track-btn").innerHTML = `${icon("package", 16)} Track My Order`;
+      document.getElementById("shop-btn").innerHTML   = `${icon("shopping-cart", 16)} Continue Shopping`;
+      refreshIcons();
+
+      const params  = new URLSearchParams(window.location.search);
+      const orderId = params.get("id");
+      if (orderId) {
+        document.getElementById("order-id").textContent = "#" + orderId.slice(0, 8).toUpperCase();
+      }
+    };
+  </script>
+</body>
+</html>

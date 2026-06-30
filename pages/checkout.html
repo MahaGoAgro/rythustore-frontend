@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .checkout-container { max-width: 560px; margin: 0 auto; padding: 0 16px 32px; }
+    .steps { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 20px 0 8px; }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--border); color: var(--muted);
+      display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; transition: all 0.2s;
+    }
+    .step-dot.active { background: var(--green700); color: white; }
+    .step-dot.done { background: var(--green500); color: white; }
+    .step-line { width: 32px; height: 2px; background: var(--border); }
+    .step-line.done { background: var(--green500); }
+    .step-label { text-align: center; font-size: 13px; font-weight: 700; color: var(--green900); margin-bottom: 16px; }
+    .checkout-card { background: white; border-radius: 16px; padding: 18px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 16px; }
+    .checkout-card-title { font-size: 15px; font-weight: 800; color: var(--green900); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .review-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--green50); font-size: 13px; }
+    .review-item:last-child { border-bottom: none; }
+    .review-item-name { color: var(--text); font-weight: 600; }
+    .review-item-meta { color: var(--muted); font-size: 11px; }
+    .review-item-price { color: var(--green700); font-weight: 700; }
+    .review-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 16px; color: var(--green900); margin-top: 10px; padding-top: 10px; border-top: 1.5px solid var(--border); }
+    .addr-option { border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; transition: border-color 0.15s, background 0.15s; }
+    .addr-option.selected { border-color: var(--green600); background: var(--green50); }
+    .addr-option input { margin-top: 3px; flex-shrink: 0; }
+    .addr-option-label { display: inline-block; background: var(--green100); color: var(--green700); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; margin-bottom: 4px; }
+    .addr-option-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+    .add-addr-link { display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; color: var(--green700); font-weight: 700; font-size: 13px; padding: 10px; cursor: pointer; }
+    .pay-option { border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    .pay-option.selected { border-color: var(--green600); background: var(--green50); }
+    .pay-option.disabled { opacity: 0.5; cursor: not-allowed; }
+    .pay-option-icon { color: var(--green700); }
+    .pay-option-label { font-weight: 700; font-size: 14px; color: var(--text); }
+    .pay-option-sub { font-size: 11px; color: var(--muted); }
+    .soon-badge { background: #FEF9C3; color: #A16207; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 20px; margin-left: 6px; text-transform: uppercase; }
+    .checkout-container .btn-outline { flex: 1; }
+    #step-address > div[style*="flex"] .btn,
+    #step-payment > div[style*="flex"] .btn { flex: 1; }
+  </style>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <div class="checkout-container">
+
+    <div class="steps">
+      <div class="step-dot" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" id="dot-3">3</div>
+    </div>
+    <div class="step-label" id="step-label">Step 1 of 3 — Review Cart</div>
+
+    <!-- Step 1 -->
+    <div id="step-review">
+      <div class="checkout-card">
+        <div class="checkout-card-title" id="review-title"></div>
+        <div id="review-items"><div class="loading">Loading...</div></div>
+        <div class="review-total"><span>Total</span><span id="review-total">₹0</span></div>
+      </div>
+      <button class="btn btn-primary" onclick="goToStep(2)">Continue to Address →</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="step-address" style="display:none">
+      <div class="checkout-card">
+        <div class="checkout-card-title" id="address-title"></div>
+        <div id="address-list"><div class="loading">Loading addresses...</div></div>
+        <div class="add-addr-link" onclick="window.location.href='addresses.html'" id="add-addr-link"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="goToStep(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goToStep(3)">Continue to Payment →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="step-payment" style="display:none">
+      <div class="checkout-card">
+        <div class="checkout-card-title" id="payment-title"></div>
+
+        <div class="pay-option selected" id="pay-cod" onclick="selectPayment('COD')">
+          <span class="pay-option-icon" id="pay-cod-icon"></span>
+          <div>
+            <div class="pay-option-label">Cash on Delivery</div>
+            <div class="pay-option-sub">Pay when your order arrives</div>
+          </div>
+        </div>
+
+        <div class="pay-option disabled" id="pay-online">
+          <span class="pay-option-icon" id="pay-online-icon"></span>
+          <div>
+            <div class="pay-option-label">UPI / Card / Net Banking <span class="soon-badge">Coming Soon</span></div>
+            <div class="pay-option-sub">Online payment via Razorpay</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="checkout-card">
+        <div class="checkout-card-title" id="summary-title"></div>
+        <div class="review-total" style="margin-top:0;padding-top:0;border-top:none">
+          <span>Total Payable</span>
+          <span id="payment-total">₹0</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="goToStep(2)">← Back</button>
+        <button class="btn btn-primary" onclick="handlePlaceOrder()" id="place-order-btn">
+          Place Order
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/orders.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+
+    let cartData          = null;
+    let addresses          = [];
+    let selectedAddressId  = null;
+    let selectedPayment    = "COD";
+
+    window.onload = async () => {
+      if (!isLoggedIn()) {
+        sessionStorage.setItem("redirectAfterLogin", "checkout.html");
+        window.location.href = "login.html";
+        return;
+      }
+      renderHeader("../");
+      renderDrawer("../");
+
+      document.getElementById("review-title").innerHTML  = `${icon("shopping-cart", 18)} Review Your Order`;
+      document.getElementById("address-title").innerHTML = `${icon("map-pin", 18)} Delivery Address`;
+      document.getElementById("payment-title").innerHTML = `${icon("credit-card", 18)} Payment Method`;
+      document.getElementById("summary-title").innerHTML = `${icon("package", 18)} Order Summary`;
+      document.getElementById("add-addr-link").innerHTML = `${icon("plus", 14)} Add a new address`;
+      document.getElementById("pay-cod-icon").innerHTML    = icon("banknote", 22);
+      document.getElementById("pay-online-icon").innerHTML = icon("smartphone", 22);
+      refreshIcons();
+
+      await loadReview();
+    };
+
+    const goToStep = (step) => {
+      if (step === 2 && (!cartData || cartData.items.length === 0)) {
+        showNotification("Your cart is empty!", "error", "alert-circle");
+        return;
+      }
+      if (step === 3 && !selectedAddressId) {
+        showNotification("Please select a delivery address!", "error", "alert-circle");
+        return;
+      }
+
+      document.getElementById("step-review").style.display  = step === 1 ? "block" : "none";
+      document.getElementById("step-address").style.display = step === 2 ? "block" : "none";
+      document.getElementById("step-payment").style.display = step === 3 ? "block" : "none";
+
+      ["1","2","3"].forEach(n => {
+        const dot = document.getElementById(`dot-${n}`);
+        dot.classList.remove("active", "done");
+        if (Number(n) < step) dot.classList.add("done");
+        else if (Number(n) === step) dot.classList.add("active");
+      });
+      ["1","2"].forEach(n => {
+        document.getElementById(`line-${n}`).classList.toggle("done", Number(n) < step);
+      });
+
+      const labels = { 1: "Review Cart", 2: "Delivery Address", 3: "Payment" };
+      document.getElementById("step-label").textContent = `Step ${step} of 3 — ${labels[step]}`;
+
+      if (step === 2) loadAddresses();
+      if (step === 3) updatePaymentTotal();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const loadReview = async () => {
+      const data = await getCart();
+      cartData = data;
+
+      const itemsEl = document.getElementById("review-items");
+
+      if (!data.success || data.items.length === 0) {
+        itemsEl.innerHTML = `
+          <div class="empty-state">
+            <p>Your cart is empty!</p>
+            <a href="products.html" style="color:var(--green700);font-weight:700;margin-top:12px;display:block">
+              Browse Products →
+            </a>
+          </div>`;
+        document.querySelector("#step-review .btn-primary").style.display = "none";
+        return;
+      }
+
+      itemsEl.innerHTML = data.items.map(i => `
+        <div class="review-item">
+          <div>
+            <div class="review-item-name">${i.product.name}</div>
+            <div class="review-item-meta">${i.product.brand} · Qty ${i.quantity}</div>
+          </div>
+          <div class="review-item-price">₹${(i.product.price * i.quantity).toFixed(2)}</div>
+        </div>
+      `).join("");
+
+      document.getElementById("review-total").textContent = `₹${data.total.toFixed(2)}`;
+    };
+
+    const loadAddresses = async () => {
+      const data = await apiCall("/auth/profile");
+      const listEl = document.getElementById("address-list");
+
+      if (!data.success || !data.user.addresses || data.user.addresses.length === 0) {
+        listEl.innerHTML = `<div class="empty-state" style="padding:24px 0"><p>No saved addresses yet!</p></div>`;
+        return;
+      }
+
+      addresses = data.user.addresses;
+
+      listEl.innerHTML = addresses.map(a => `
+        <label class="addr-option ${selectedAddressId === a.id ? 'selected' : ''}" onclick="selectAddress('${a.id}')">
+          <input type="radio" name="addr" ${selectedAddressId === a.id ? 'checked' : ''} />
+          <div>
+            <span class="addr-option-label">${a.label}</span>
+            <div class="addr-option-text">${a.line1}, ${a.city}, ${a.state} - ${a.pincode}</div>
+          </div>
+        </label>
+      `).join("");
+
+      if (!selectedAddressId && addresses.length > 0) {
+        selectAddress(addresses[0].id);
+      }
+    };
+
+    const selectAddress = (id) => {
+      selectedAddressId = id;
+      document.querySelectorAll(".addr-option").forEach(el => el.classList.remove("selected"));
+      loadAddresses();
+    };
+
+    const selectPayment = (method) => {
+      selectedPayment = method;
+      document.getElementById("pay-cod").classList.toggle("selected", method === "COD");
+    };
+
+    const updatePaymentTotal = () => {
+      document.getElementById("payment-total").textContent = `₹${cartData.total.toFixed(2)}`;
+    };
+
+    const handlePlaceOrder = async () => {
+      const addr = addresses.find(a => a.id === selectedAddressId);
+      if (!addr) {
+        showNotification("Please select a delivery address!", "error", "alert-circle");
+        return;
+      }
+
+      const fullAddress = `${addr.label}: ${addr.line1}, ${addr.city}, ${addr.state} - ${addr.pincode}`;
+
+      const btn = document.getElementById("place-order-btn");
+      btn.textContent = "Placing order...";
+      btn.disabled    = true;
+
+      const data = await placeOrder(fullAddress);
+
+      if (data.success) {
+        showNotification("Order placed successfully!", "success", "party-popper");
+        setTimeout(() => window.location.href = "order-success.html?id=" + data.order.id, 1200);
+      } else {
+        showNotification(data.message, "error", "x-circle");
+        btn.textContent = "Place Order";
+        btn.disabled    = false;
+      }
+    };
+
+  </script>
+</body>
+</html>

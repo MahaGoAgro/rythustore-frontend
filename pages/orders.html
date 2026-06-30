@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <nav class="nav-tabs">
+    <a href="../index.html"                        class="nav-tab">Home</a>
+    <a href="products.html?category=SEEDS"        class="nav-tab">Seeds</a>
+    <a href="products.html?category=PESTICIDES"   class="nav-tab">Pesticides</a>
+    <a href="products.html?category=INSECTICIDES" class="nav-tab">Insecticides</a>
+    <a href="products.html?category=ORGANIC"      class="nav-tab">Organic</a>
+  </nav>
+
+  <div class="orders-container">
+    <div class="page-header" style="padding:20px 0">
+      <div class="page-title">My Orders</div>
+      <div id="orders-count" style="color:var(--muted);font-size:13px;"></div>
+    </div>
+    <div id="orders-list">
+      <div class="loading">Loading orders...</div>
+    </div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/orders.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+
+    window.onload = async () => {
+      if (!isLoggedIn()) { window.location.href = "login.html"; return; }
+      renderHeader("../");
+      renderDrawer("../");
+      updateCartCount();
+      loadOrders();
+    };
+
+    const loadOrders = async () => {
+      const ordersList  = document.getElementById("orders-list");
+      const ordersCount = document.getElementById("orders-count");
+      const data        = await getOrders();
+
+      if (!data.success) {
+        ordersList.innerHTML = `<div class="empty-state"><p>Could not load orders!</p></div>`;
+        return;
+      }
+
+      if (data.orders.length === 0) {
+        ordersList.innerHTML = `
+          <div class="empty-state">
+            <p>No orders yet!</p>
+            <a href="products.html" style="color:var(--green700);font-weight:700;margin-top:12px;display:block">
+              Start Shopping →
+            </a>
+          </div>`;
+        return;
+      }
+
+      ordersCount.textContent  = `${data.count} orders`;
+      ordersList.innerHTML     = data.orders.map(order => renderOrderCard(order)).join("");
+      refreshIcons();
+    };
+
+  </script>
+</body>
+</html>

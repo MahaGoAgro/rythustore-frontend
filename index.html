@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RythuStore — Your Farm. Our Mission.</title>
+  <link rel="icon" href="images/logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .banner-section { padding: 2px 14px 18px; }
+    .banner {
+      border-radius: 16px; padding: 22px 24px; color: white; position: relative;
+      overflow: hidden; min-height: 122px; display: flex; flex-direction: column; justify-content: center;
+    }
+    .banner-emoji { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); opacity: 0.16; }
+    .banner-tag { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.7; margin-bottom: 5px; }
+    .banner-title { font-size: 19px; font-weight: 700; margin-bottom: 5px; }
+    .banner-sub { font-size: 12px; opacity: 0.82; margin-bottom: 13px; }
+    .banner-btn {
+      background: white; color: var(--green700); border: none; border-radius: 18px;
+      padding: 8px 18px; font-weight: 600; font-size: 12px; cursor: pointer; width: fit-content;
+    }
+    .banner-dots { position: absolute; bottom: 11px; right: 16px; display: flex; gap: 5px; }
+    .banner-dot { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.35); cursor: pointer; transition: all 0.3s; width: 5px; }
+    .banner-dot.active { width: 16px; background: rgba(255,255,255,0.9); }
+
+    .category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; padding: 16px 14px; }
+    .category-card {
+      background: white; border-radius: 13px; padding: 15px 6px; text-align: center; cursor: pointer;
+      box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: box-shadow 0.15s; text-decoration: none;
+    }
+    .category-card:hover { box-shadow: var(--shadow-md); }
+    .category-icon { color: var(--green700); display: flex; justify-content: center; }
+    .category-name { font-size: 10px; font-weight: 600; color: var(--text); margin-top: 7px; }
+
+    .news-section { padding: 0 14px 26px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+    .section-title { font-size: 16px; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:7px; }
+    .news-card {
+      background: white; border-radius: 12px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start;
+      box-shadow: var(--shadow-sm); border: 1px solid var(--border); cursor: pointer; margin-bottom: 9px; transition: box-shadow 0.15s;
+    }
+    .news-card:hover { box-shadow: var(--shadow-md); }
+    .news-icon { color: var(--text-secondary); flex-shrink: 0; margin-top: 1px; }
+    .news-tag { background: var(--surface); color: var(--text-secondary); font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; }
+    .news-title { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; margin-top: 4px; }
+    .news-meta { font-size: 10px; color: var(--muted); margin-top: 3px; display:flex; align-items:center; gap:4px; }
+  </style>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <!-- Greeting -->
+  <div class="greeting-card" id="greeting-section"></div>
+
+  <!-- Weather -->
+  <div class="weather-card-wrap">
+    <div class="weather-card">
+      <div class="weather-card-top">
+        <div class="weather-left">
+          <div class="weather-icon-badge" id="weather-icon"></div>
+          <div>
+            <div class="weather-temp" id="weather-temp-val">—</div>
+            <div class="weather-city">
+              <span id="weather-location-icon"></span>
+              <span id="weather-city">Loading...</span>
+            </div>
+          </div>
+        </div>
+        <div class="weather-right">
+          <div class="weather-stat" id="humidity-stat"></div>
+          <div class="weather-stat" id="wind-stat"></div>
+        </div>
+      </div>
+      <div id="weather-suggestion" style="display:none"></div>
+      <div id="weather-location-btn" class="weather-location-hint"></div>
+    </div>
+  </div>
+
+  <!-- Crop Price Ticker -->
+  <div class="ticker-bar">
+    <div class="ticker-track" id="ticker-track"></div>
+  </div>
+
+  <!-- Nav Tabs -->
+  <nav class="nav-tabs">
+    <a href="index.html"                              class="nav-tab active">Home</a>
+    <a href="pages/products.html?category=SEEDS"       class="nav-tab">Seeds</a>
+    <a href="pages/products.html?category=PESTICIDES"  class="nav-tab">Pesticides</a>
+    <a href="pages/products.html?category=INSECTICIDES"class="nav-tab">Insecticides</a>
+    <a href="pages/products.html?category=ORGANIC"     class="nav-tab">Organic</a>
+  </nav>
+
+  <!-- Category Grid -->
+  <div class="category-grid" id="category-grid"></div>
+
+  <!-- Flash Sale (only shows if real flash sale products exist) -->
+  <div class="home-section" id="flash-sale-section" style="display:none"></div>
+
+  <!-- Season Banner -->
+  <div class="home-section">
+    <div id="season-banner"></div>
+  </div>
+
+  <!-- Banner Carousel -->
+  <div class="banner-section">
+    <div class="banner" id="banner">
+      <div class="banner-emoji" id="banner-icon"></div>
+      <div class="banner-tag">Special Offer</div>
+      <div class="banner-title"  id="banner-title"></div>
+      <div class="banner-sub"    id="banner-sub"></div>
+      <button class="banner-btn" id="banner-btn"></button>
+      <div class="banner-dots"   id="banner-dots"></div>
+    </div>
+  </div>
+
+  <!-- Bestsellers (only shows if admin has marked any) -->
+  <div class="home-section" id="bestseller-section" style="display:none">
+    <div class="home-section-title" id="bestseller-title"></div>
+    <div class="mini-products-grid" id="bestseller-grid"></div>
+  </div>
+
+  <!-- Recently Viewed -->
+  <div class="home-section" id="recently-viewed-section" style="display:none">
+    <div class="home-section-title" id="recently-viewed-title"></div>
+    <div class="mini-products-grid" id="recently-viewed-grid"></div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="home-section">
+    <div id="calendar-section"></div>
+  </div>
+
+  <!-- Testimonials -->
+  <div class="home-section" id="testimonial-section"></div>
+
+  <!-- News -->
+  <div class="news-section">
+    <div class="section-header">
+      <div class="section-title" id="news-section-title"></div>
+      <span style="font-size:12px;color:var(--green600);font-weight:600;cursor:pointer">View all →</span>
+    </div>
+    <div id="news-list"></div>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/header-drawer.js"></script>
+  <script src="js/home-features.js"></script>
+  <script>
+    const BANNERS = [
+      { title:"Monsoon Ready Sale",     sub:"Up to 40% off on all seeds and fertilizers", cta:"Shop now", bg:"linear-gradient(135deg,#173404 0%,#27500A 55%,#3B6D11 100%)", iconName:"cloud-rain", link:"pages/products.html" },
+      { title:"New Organic Range",      sub:"100% natural inputs, certified and trusted", cta:"Explore",  bg:"linear-gradient(135deg,#04342C 0%,#0F6E56 55%,#1D9E75 100%)", iconName:"leaf", link:"pages/products.html?category=ORGANIC" },
+      { title:"Drone Spraying Service", sub:"Book precision spraying for your fields",   cta:"Book now", bg:"linear-gradient(135deg,#26215C 0%,#534AB7 55%,#7F77DD 100%)", iconName:"send", link:"pages/products.html" },
+    ];
+
+    const NEWS = [
+      { tag:"Policy",        title:"Government raises MSP for Kharif crops by 8%",             time:"2 hours ago", read:"3 min", iconName:"clipboard-list" },
+      { tag:"Weather Alert", title:"IMD predicts above-normal rainfall in northwest India",      time:"5 hours ago", read:"2 min", iconName:"cloud-rain" },
+      { tag:"Technology",    title:"AI-powered soil testing kits now available at ₹499",        time:"Yesterday",   read:"4 min", iconName:"flask-conical" },
+      { tag:"Market",        title:"Onion prices surge 30% as supply tightens",                 time:"Yesterday",   read:"3 min", iconName:"trending-up" },
+      { tag:"Research",      title:"New drought-resistant wheat variety shows 25% higher yield", time:"2 days ago",  read:"5 min", iconName:"wheat" },
+    ];
+
+    const CATEGORIES = [
+      { key:"SEEDS",        label:"Seeds",        iconName:"sprout" },
+      { key:"PESTICIDES",   label:"Pesticides",   iconName:"shield" },
+      { key:"INSECTICIDES", label:"Insecticides", iconName:"bug" },
+      { key:"ORGANIC",      label:"Organic",      iconName:"leaf" },
+    ];
+
+    let bannerIdx = 0;
+
+    const showBanner = (idx) => {
+      const b = BANNERS[idx];
+      document.getElementById("banner").style.background  = b.bg;
+      document.getElementById("banner-icon").innerHTML     = icon(b.iconName, 64);
+      document.getElementById("banner-title").textContent  = b.title;
+      document.getElementById("banner-sub").textContent    = b.sub;
+      document.getElementById("banner-btn").textContent    = b.cta + " →";
+      document.getElementById("banner-btn").onclick        = () => window.location.href = b.link;
+      document.querySelectorAll(".banner-dot").forEach((d, i) => {
+        d.className = "banner-dot" + (i === idx ? " active" : "");
+      });
+      refreshIcons();
+    };
+
+    const initBanner = () => {
+      const dotsEl = document.getElementById("banner-dots");
+      BANNERS.forEach((_, i) => {
+        const dot = document.createElement("div");
+        dot.className = "banner-dot" + (i === 0 ? " active" : "");
+        dot.onclick   = () => { bannerIdx = i; showBanner(i); };
+        dotsEl.appendChild(dot);
+      });
+      showBanner(0);
+      setInterval(() => { bannerIdx = (bannerIdx + 1) % BANNERS.length; showBanner(bannerIdx); }, 3500);
+    };
+
+    const renderCategories = () => {
+      document.getElementById("category-grid").innerHTML = CATEGORIES.map(c => `
+        <a href="pages/products.html?category=${c.key}" class="category-card">
+          <div class="category-icon">${icon(c.iconName, 26)}</div>
+          <div class="category-name">${c.label}</div>
+        </a>
+      `).join("");
+    };
+
+    const renderNews = () => {
+      document.getElementById("news-section-title").innerHTML = `${icon("newspaper", 18)} Agri News`;
+      document.getElementById("news-list").innerHTML = NEWS.map(n => `
+        <div class="news-card">
+          <div class="news-icon">${icon(n.iconName, 26)}</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:7px">
+              <span class="news-tag">${n.tag}</span>
+              <span style="font-size:10px;color:var(--muted)">${n.time}</span>
+            </div>
+            <div class="news-title">${n.title}</div>
+            <div class="news-meta">${icon("book-open", 11)} ${n.read} read</div>
+          </div>
+        </div>
+      `).join("");
+    };
+
+    window.onload = () => {
+      renderHeader("");
+      renderDrawer("");
+      updateCartCount();
+      renderCategories();
+      initBanner();
+      renderNews();
+
+      document.getElementById("bestseller-title").innerHTML = `${icon("trophy", 17)} Bestsellers`;
+      document.getElementById("recently-viewed-title").innerHTML = `${icon("eye", 17)} Recently Viewed`;
+
+      refreshIcons();
+      initHomeFeatures();
+    };
+  </script>
+</body>
+</html>

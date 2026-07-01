@@ -2,42 +2,39 @@
 
 // Register new user
 const register = async (name, email, phone, password) => {
-  const data = await apiCall("/auth/register", "POST", {
-    name, email, phone, password
-  });
-  if (data.success) {
-    saveToken(data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-  }
-  return data;
+  return await apiCall("/auth/register", "POST", { name, email, phone, password });
 };
 
 // Login user
 const login = async (email, password) => {
-  const data = await apiCall("/auth/login", "POST", {
-    email, password
-  });
+  const data = await apiCall("/auth/login", "POST", { email, password });
   if (data.success) {
-    saveToken(data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user",  JSON.stringify(data.user));
   }
   return data;
 };
 
 // Logout user
 const logout = () => {
-  removeToken();
+  localStorage.removeItem("token");
   localStorage.removeItem("user");
-  window.location.href = "../pages/login.html";
+  window.location.href = window.location.pathname.includes("/pages/")
+    ? "../index.html"
+    : "index.html";
 };
 
-// Get logged in user
+// Get current logged-in user from localStorage
 const getUser = () => {
-  const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
+  try {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
 };
 
-// Check if logged in
+// Check if user is logged in
 const isLoggedIn = () => {
-  return getToken() !== null;
+  return !!localStorage.getItem("token");
 };

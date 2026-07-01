@@ -7,7 +7,7 @@
   <link rel="icon" href="../images/logo.png">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
   <style>
     .divider {
       display: flex;
@@ -125,7 +125,7 @@
     // ── Google Sign-In ─────────────────────────
     const triggerGoogleSignIn = () => {
       google.accounts.id.initialize({
-        client_id: "REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID",
+        client_id: "71107159619-b2jqrd0dhq088of63nppkpihm15ce61h.apps.googleusercontent.com",
         callback:  handleGoogleResponse,
       });
       google.accounts.id.prompt();

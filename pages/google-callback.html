@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signing in... — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .callback-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      padding: 20px;
+      text-align: center;
+      gap: 16px;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green700);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .callback-title { font-size: 16px; font-weight: 600; color: var(--text); }
+    .callback-sub   { font-size: 13px; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <div class="callback-container">
+    <div class="spinner"></div>
+    <div class="callback-title" id="status-title">Signing you in with Google...</div>
+    <div class="callback-sub"  id="status-sub">Please wait a moment</div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+
+    const showError = (msg) => {
+      document.getElementById("status-title").textContent = "Sign-in failed";
+      document.getElementById("status-sub").textContent   = msg;
+      document.querySelector(".spinner").style.display    = "none";
+      setTimeout(() => window.location.href = "login.html", 3000);
+    };
+
+    const handleCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code   = params.get("code");
+      const state  = params.get("state");
+      const error  = params.get("error");
+
+      // User cancelled Google sign-in
+      if (error) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      if (!code) {
+        showError("No authorization code received from Google.");
+        return;
+      }
+
+      // Verify state to prevent CSRF attacks
+      const savedState = sessionStorage.getItem("google_oauth_state");
+      sessionStorage.removeItem("google_oauth_state");
+
+      if (state !== savedState) {
+        showError("Security check failed. Please try again.");
+        return;
+      }
+
+      // Send code to backend — backend exchanges it with Google for user info
+      const data = await apiCall("/auth/google-callback", "POST", {
+        code,
+        redirectUri: window.location.origin + "/pages/google-callback.html"
+      });
+
+      if (data.success) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user",  JSON.stringify(data.user));
+
+        const redirectTo = sessionStorage.getItem("redirectAfterLogin");
+        if (redirectTo) {
+          sessionStorage.removeItem("redirectAfterLogin");
+          window.location.href = redirectTo;
+        } else {
+          window.location.href = "../index.html";
+        }
+      } else {
+        showError(data.message || "Could not complete Google sign-in.");
+      }
+    };
+
+    handleCallback();
+  </script>
+</body>
+</html>

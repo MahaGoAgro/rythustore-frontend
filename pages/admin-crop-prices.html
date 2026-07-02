@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crop Prices — RythuStore Admin</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .admin-container { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .admin-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+    .admin-form {
+      background: white; border-radius: 16px; padding: 20px;
+      box-shadow: var(--shadow-md); border: 1px solid var(--border);
+      position: sticky; top: 80px;
+    }
+    .admin-form-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+    .admin-form .form-group input,
+    .admin-form .form-group select {
+      width: 100%; padding: 10px 14px; border-radius: 9px; border: 1px solid var(--border);
+      font-size: 13px; color: var(--text); background: var(--page); outline: none; font-family: inherit;
+    }
+    .admin-form .form-group input:focus { border-color: var(--green500); background: white; }
+    .admin-form .form-group label { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 5px; display: block; }
+    .admin-form .form-group { margin-bottom: 12px; }
+
+    .change-preview {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: -4px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .change-preview.up   { background: #ECFDF5; color: #065F46; }
+    .change-preview.down { background: #FEF2F2; color: #7F1D1D; }
+    .change-preview.flat { background: var(--surface); color: var(--muted); }
+
+    .crop-list { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border); }
+    .crop-list-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+
+    .crop-row {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px;
+      transition: box-shadow 0.15s;
+    }
+    .crop-row:hover { box-shadow: var(--shadow-sm); }
+    .crop-name  { flex: 1; font-weight: 600; font-size: 14px; color: var(--text); }
+    .crop-price { font-weight: 700; font-size: 15px; color: var(--green700); min-width: 90px; }
+    .crop-unit  { font-size: 11px; color: var(--muted); }
+    .crop-prev  { font-size: 11px; color: var(--muted); text-decoration: line-through; }
+    .crop-change {
+      font-size: 12px; font-weight: 600; min-width: 56px; text-align: right;
+      display: flex; align-items: center; gap: 3px; justify-content: flex-end;
+    }
+    .crop-change.up   { color: #16A34A; }
+    .crop-change.down { color: #DC2626; }
+    .crop-change.flat { color: var(--muted); }
+
+    .crop-actions { display: flex; gap: 6px; }
+    .btn-edit   { background: var(--green100); color: var(--green700); border: none; border-radius: 7px; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 3px; }
+    .btn-delete { background: #FEE2E2; color: #DC2626; border: none; border-radius: 7px; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 3px; }
+
+    .nav-links { display: flex; gap: 12px; margin-bottom: 20px; }
+    .nav-link { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: white; display: flex; align-items: center; gap: 5px; }
+    .nav-link.active { background: var(--green700); color: white; border-color: var(--green700); }
+
+    .update-hint {
+      font-size: 11px; color: var(--muted); margin-top: 4px; font-style: italic;
+    }
+
+    @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <div class="admin-container">
+    <div style="padding:20px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px" id="page-title"></div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px">Update prices daily — change % is calculated automatically</div>
+      </div>
+      <a href="../index.html" class="btn btn-outline" style="text-decoration:none;display:flex;align-items:center;gap:6px" id="view-store-btn"></a>
+    </div>
+
+    <div class="nav-links">
+      <a href="admin.html" class="nav-link" id="products-link"></a>
+      <a href="admin-crop-prices.html" class="nav-link active" id="crops-link"></a>
+    </div>
+
+    <div class="admin-grid">
+
+      <!-- Form -->
+      <div class="admin-form">
+        <div class="admin-form-title" id="form-title"></div>
+        <div class="form-error" id="error-msg"></div>
+        <input type="hidden" id="crop-id" />
+        <input type="hidden" id="current-price" />
+
+        <div class="form-group">
+          <label>Crop Name</label>
+          <input type="text" id="name" placeholder="e.g. Wheat, Onion, Cotton" />
+          <div class="update-hint" id="name-hint" style="display:none">
+            Name cannot be changed once a crop is added
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="price-label">Today's Price (₹)</label>
+          <input type="number" id="price" placeholder="2275" oninput="previewChange(this.value)" />
+        </div>
+
+        <!-- Live change preview — only shows when editing -->
+        <div class="change-preview" id="change-preview"></div>
+
+        <div class="form-group">
+          <label>Unit</label>
+          <input type="text" id="unit" placeholder="quintal / kg / ton" />
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn btn-primary" onclick="handleSubmit()" id="submit-btn" style="display:flex;align-items:center;justify-content:center;gap:6px"></button>
+          <button class="btn btn-outline" onclick="resetForm()" id="cancel-btn" style="display:none">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Crop list -->
+      <div class="crop-list">
+        <div class="crop-list-title" id="list-title"></div>
+        <div id="crops-list"><div class="loading">Loading...</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+
+    let allCrops  = [];
+    let editingId = null;
+
+    window.onload = async () => {
+      if (!isLoggedIn()) { window.location.href = "login.html"; return; }
+      const user = getUser();
+      if (user.role !== "ADMIN") {
+        alert("Access denied!");
+        window.location.href = "../index.html";
+        return;
+      }
+
+      renderHeader("../");
+      renderDrawer("../");
+
+      document.getElementById("page-title").innerHTML     = `${icon("trending-up", 20)} Crop Prices`;
+      document.getElementById("view-store-btn").innerHTML = `${icon("globe", 14)} View Store`;
+      document.getElementById("form-title").innerHTML     = `${icon("plus", 16)} Add New Crop`;
+      document.getElementById("submit-btn").innerHTML     = `${icon("plus", 14)} Add Crop`;
+      document.getElementById("list-title").innerHTML     = `${icon("list", 16)} All Crop Prices`;
+      document.getElementById("products-link").innerHTML  = `${icon("package", 14)} Products`;
+      document.getElementById("crops-link").innerHTML     = `${icon("trending-up", 14)} Crop Prices`;
+      refreshIcons();
+
+      await loadCrops();
+    };
+
+    // ── Live change % preview ──────────────────
+    const previewChange = (newPriceStr) => {
+      const preview      = document.getElementById("change-preview");
+      const currentPrice = parseFloat(document.getElementById("current-price").value);
+
+      if (!editingId || !currentPrice || !newPriceStr) {
+        preview.style.display = "none";
+        return;
+      }
+
+      const newPrice = parseFloat(newPriceStr);
+      if (!newPrice || newPrice <= 0) {
+        preview.style.display = "none";
+        return;
+      }
+
+      const change = ((newPrice - currentPrice) / currentPrice) * 100;
+      const rounded = Math.round(change * 10) / 10;
+
+      let cls, arrow, text;
+      if (rounded > 0) {
+        cls = "up"; arrow = "↑";
+        text = `${arrow} +${rounded}% increase from ₹${currentPrice.toLocaleString("en-IN")}`;
+      } else if (rounded < 0) {
+        cls = "down"; arrow = "↓";
+        text = `${arrow} ${rounded}% decrease from ₹${currentPrice.toLocaleString("en-IN")}`;
+      } else {
+        cls = "flat"; arrow = "→";
+        text = `${arrow} No change from ₹${currentPrice.toLocaleString("en-IN")}`;
+      }
+
+      preview.className     = `change-preview ${cls}`;
+      preview.textContent   = text;
+      preview.style.display = "block";
+    };
+
+    const loadCrops = async () => {
+      const data = await apiCall("/crop-prices");
+      if (!data.success) {
+        document.getElementById("crops-list").innerHTML = `<div class="empty-state"><p>Could not load crop prices!</p></div>`;
+        return;
+      }
+      allCrops = data.crops;
+      renderCrops();
+    };
+
+    const renderCrops = () => {
+      const list = document.getElementById("crops-list");
+
+      if (allCrops.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <p>No crop prices added yet!</p>
+            <p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5">
+              Add crops using the form on the left.<br>
+              They appear in the home page ticker automatically.
+            </p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = allCrops.map(c => {
+        const changeClass = c.change > 0 ? "up" : c.change < 0 ? "down" : "flat";
+        const changeIcon  = c.change > 0 ? "trending-up" : c.change < 0 ? "trending-down" : "minus";
+        const changeText  = c.change !== 0
+          ? `${c.change > 0 ? "+" : ""}${c.change}%`
+          : "No change";
+
+        return `
+          <div class="crop-row">
+            <div class="crop-name">${c.name}</div>
+            <div>
+              <div class="crop-price">₹${c.price.toLocaleString("en-IN")}</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="crop-unit">per ${c.unit}</span>
+                ${c.previousPrice
+                  ? `<span class="crop-prev">₹${c.previousPrice.toLocaleString("en-IN")}</span>`
+                  : ""
+                }
+              </div>
+            </div>
+            <div class="crop-change ${changeClass}">
+              ${icon(changeIcon, 12)} ${changeText}
+            </div>
+            <div class="crop-actions">
+              <button class="btn-edit"   onclick="editCrop('${c.id}')">${icon("pencil", 11)} Edit</button>
+              <button class="btn-delete" onclick="deleteCrop('${c.id}', '${c.name}')">${icon("trash-2", 11)} Delete</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+      refreshIcons();
+    };
+
+    const handleSubmit = async () => {
+      const name  = document.getElementById("name").value.trim();
+      const price = parseFloat(document.getElementById("price").value);
+      const unit  = document.getElementById("unit").value.trim() || "quintal";
+      const errorMsg = document.getElementById("error-msg");
+
+      errorMsg.style.display = "none";
+
+      if (!name || !price || price <= 0) {
+        errorMsg.textContent   = "Please enter a crop name and valid price!";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      const btn = document.getElementById("submit-btn");
+      btn.innerHTML = "Saving...";
+      btn.disabled  = true;
+
+      const endpoint = editingId ? `/crop-prices/${editingId}` : "/crop-prices";
+      const method   = editingId ? "PUT" : "POST";
+      const data     = await apiCall(endpoint, method, { name, price, unit });
+
+      if (data.success) {
+        const changeMsg = data.change !== undefined
+          ? ` (Change: ${data.change > 0 ? "+" : ""}${data.change}%)`
+          : "";
+        showNotification(
+          editingId ? `Price updated!${changeMsg}` : "Crop added!",
+          "success", "check-circle"
+        );
+        resetForm();
+        await loadCrops();
+      } else {
+        errorMsg.textContent   = data.message;
+        errorMsg.style.display = "block";
+      }
+
+      btn.innerHTML = editingId
+        ? `${icon("save", 14)} Update Price`
+        : `${icon("plus", 14)} Add Crop`;
+      btn.disabled = false;
+      refreshIcons();
+    };
+
+    const editCrop = (id) => {
+      const c = allCrops.find(c => c.id === id);
+      if (!c) return;
+
+      editingId = id;
+      document.getElementById("crop-id").value      = id;
+      document.getElementById("current-price").value = c.price;
+      document.getElementById("name").value          = c.name;
+      document.getElementById("price").value         = c.price;
+      document.getElementById("unit").value          = c.unit;
+
+      // Disable name field — can't change once created
+      document.getElementById("name").disabled         = true;
+      document.getElementById("name-hint").style.display = "block";
+      document.getElementById("price-label").textContent = "New Price (₹)";
+
+      document.getElementById("form-title").innerHTML      = `${icon("pencil", 16)} Update Price`;
+      document.getElementById("submit-btn").innerHTML      = `${icon("save", 14)} Update Price`;
+      document.getElementById("cancel-btn").style.display  = "block";
+      document.getElementById("change-preview").style.display = "none";
+      refreshIcons();
+
+      document.querySelector(".admin-form").scrollIntoView({ behavior: "smooth" });
+    };
+
+    const deleteCrop = async (id, name) => {
+      if (!confirm(`Remove "${name}" from the ticker?`)) return;
+      const data = await apiCall(`/crop-prices/${id}`, "DELETE");
+      if (data.success) {
+        showNotification("Crop removed!", "success", "trash-2");
+        await loadCrops();
+      }
+    };
+
+    const resetForm = () => {
+      editingId = null;
+      ["crop-id","name","price","unit","current-price"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("name").disabled          = false;
+      document.getElementById("name-hint").style.display = "none";
+      document.getElementById("price-label").textContent = "Today's Price (₹)";
+      document.getElementById("error-msg").style.display = "none";
+      document.getElementById("change-preview").style.display = "none";
+      document.getElementById("form-title").innerHTML    = `${icon("plus", 16)} Add New Crop`;
+      document.getElementById("submit-btn").innerHTML    = `${icon("plus", 14)} Add Crop`;
+      document.getElementById("cancel-btn").style.display = "none";
+      refreshIcons();
+    };
+
+  </script>
+</body>
+</html>

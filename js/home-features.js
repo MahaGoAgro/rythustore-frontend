@@ -144,11 +144,24 @@ const CROP_PRICES = [
   { name: "Paddy",  price: 2040, unit: "qtl", change: -0.5 },
 ];
 
-const renderTicker = () => {
+
+// ════════════════════════════════════════════════
+// 3. LIVE CROP PRICE TICKER — from database
+// ════════════════════════════════════════════════
+const renderTicker = async () => {
   const el = document.getElementById("ticker-track");
   if (!el) return;
 
-  const items = CROP_PRICES.map(c => {
+  // Try to load from API, fall back to empty if none set yet
+  const data = await apiCall("/crop-prices");
+  const crops = (data.success && data.crops.length > 0) ? data.crops : [];
+
+  if (crops.length === 0) {
+    document.querySelector(".ticker-bar").style.display = "none";
+    return;
+  }
+
+  const items = crops.map(c => {
     const arrowIcon = c.change > 0 ? "trending-up" : c.change < 0 ? "trending-down" : "minus";
     const color = c.change > 0 ? "#4ADE80" : c.change < 0 ? "#FCA5A5" : "rgba(255,255,255,0.6)";
     return `
@@ -161,7 +174,7 @@ const renderTicker = () => {
     `;
   }).join("");
 
-  el.innerHTML = items + items;
+  el.innerHTML = items + items; // duplicate for seamless loop
   refreshIcons();
 };
 
@@ -466,13 +479,18 @@ const renderTestimonials = () => {
 // Initialize everything
 // ════════════════════════════════════════════════
 const initHomeFeatures = () => {
+  // These don't need API calls — run immediately
   renderGreeting();
-  loadWeather();
   renderTicker();
   renderSeasonBanner();
-  renderFlashSale();
-  renderBestsellers();
-  renderRecentlyViewed();
   renderCalendar();
   renderTestimonials();
+  renderRecentlyViewed();
+
+  // These need API calls — run in parallel
+  Promise.all([
+    loadWeather(),
+    renderFlashSale(),
+    renderBestsellers(),
+  ]);
 };

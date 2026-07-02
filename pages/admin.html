@@ -120,6 +120,7 @@
         <div style="color:var(--muted);font-size:13px;margin-top:4px">Manage your RythuStore products</div>
       </div>
       <a href="../index.html" class="btn btn-outline" id="view-store-btn" style="text-decoration:none;display:flex;align-items:center;gap:6px"></a>
+      <a href="admin-crop-prices.html" class="btn btn-outline" style="text-decoration:none;display:flex;align-items:center;gap:6px" id="crop-prices-link"></a>
     </div>
 
     <div class="stats-bar">
@@ -270,26 +271,49 @@
     let allProducts  = [];
     let editingId    = null;
     let imageBase64  = null;
+    let imageUrl     = null;
+    let imagePublicId = null;
 
-    const previewImage = (input) => {
+    const previewImage = async (input) => {
       const file = input.files[0];
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Image too large! Please use an image under 2MB.");
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image too large! Please use an image under 5MB.");
         input.value = "";
         return;
       }
+
+      // Show preview immediately while uploading
       const reader = new FileReader();
-      reader.onload = (e) => {
-        imageBase64 = e.target.result;
-        document.getElementById("preview-img").src = imageBase64;
+      reader.onload = async (e) => {
+        const base64 = e.target.result;
+        document.getElementById("preview-img").src = base64;
         document.getElementById("image-preview").style.display = "block";
+        document.getElementById("remove-img-btn").innerHTML = "Uploading...";
+
+        // Upload to Cloudinary via backend
+        const data = await apiCall("/upload", "POST", { image: base64 });
+
+        if (data.success) {
+          imageBase64  = null;         // no longer storing base64
+          imageUrl     = data.imageUrl; // store the Cloudinary URL instead
+          imagePublicId = data.publicId;
+          document.getElementById("remove-img-btn").innerHTML =
+            `${icon("x", 14)} Remove Image`;
+          refreshIcons();
+        } else {
+          alert("Image upload failed: " + data.message);
+          removeImage();
+        }
       };
       reader.readAsDataURL(file);
     };
 
     const removeImage = () => {
-      imageBase64 = null;
+      imageBase64   = null;
+      imageUrl      = null;
+      imagePublicId = null;
       document.getElementById("imageFile").value = "";
       document.getElementById("image-preview").style.display = "none";
       document.getElementById("preview-img").src = "";
@@ -318,6 +342,7 @@
 
       document.getElementById("admin-title").innerHTML    = `${icon("settings", 22)} Admin Panel`;
       document.getElementById("view-store-btn").innerHTML = `${icon("globe", 16)} View Store`;
+
       document.getElementById("form-icon").innerHTML      = icon("plus", 18);
       document.getElementById("remove-img-btn").innerHTML = `${icon("x", 14)} Remove Image`;
       document.getElementById("submit-btn").innerHTML     = `${icon("plus", 16)} Add Product`;
@@ -327,6 +352,9 @@
       document.getElementById("tab-organic").innerHTML      = `${icon("leaf", 13)} Organic`;
       document.getElementById("bestseller-label").innerHTML = `${icon("trophy", 14)} Mark as Bestseller`;
       document.getElementById("flashsale-label").innerHTML  = `${icon("zap", 14)} Flash Sale Ends At`;
+      document.getElementById("crop-prices-link").innerHTML =`${icon("trending-up", 14)} Crop Prices`;
+  
+
       refreshIcons();
 
       await loadProducts();
@@ -424,7 +452,7 @@
         badge:           document.getElementById("badge").value.trim()         || null,
         rating:          parseFloat(document.getElementById("rating").value)   || 0,
         reviews:         parseInt(document.getElementById("reviews").value)    || 0,
-        imageUrl:        imageBase64 || null,
+        imageUrl:        imageUrl || imageBase64 || null,
         isBestseller:    document.getElementById("isBestseller").checked,
         flashSaleEndsAt: flashSaleVal ? new Date(flashSaleVal).toISOString() : null,
       };

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders — RythuStore Admin</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .admin-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .nav-links { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .nav-link { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: white; display: flex; align-items: center; gap: 5px; }
+    .nav-link.active { background: var(--green700); color: white; border-color: var(--green700); }
+
+    .filters {
+      display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 7px 16px; border-radius: 20px; border: 1.5px solid var(--border);
+      background: white; font-size: 12px; font-weight: 600; cursor: pointer;
+      color: var(--muted); transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+    }
+    .filter-tab.active, .filter-tab:hover {
+      background: var(--green700); color: white; border-color: var(--green700);
+    }
+
+    .order-card {
+      background: white; border-radius: 14px; padding: 16px;
+      margin-bottom: 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+    }
+    .order-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .order-id   { font-weight: 700; font-size: 14px; color: var(--text); }
+    .order-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .order-customer { font-size: 12px; color: var(--text-secondary); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+
+    .status-badge {
+      color: white; font-size: 10px; font-weight: 700; padding: 4px 10px;
+      border-radius: 20px; white-space: nowrap; text-transform: uppercase;
+    }
+
+    .order-items-list { border-top: 1px solid var(--surface); padding-top: 10px; margin-bottom: 10px; }
+    .order-item-row {
+      display: flex; justify-content: space-between; font-size: 12px;
+      padding: 4px 0; color: var(--text-secondary);
+    }
+    .order-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--surface); padding-top: 10px;
+    }
+    .order-total { font-weight: 700; font-size: 15px; color: var(--green700); }
+    .order-address { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+
+    .status-update {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .status-select {
+      padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);
+      font-size: 12px; font-weight: 600; color: var(--text); background: white;
+      outline: none; cursor: pointer;
+    }
+    .status-select:focus { border-color: var(--green500); }
+    .btn-update-status {
+      background: var(--green700); color: white; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .btn-update-status:hover { background: var(--green900); }
+
+    .stats-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+    .stat-card { background: white; border-radius: 12px; padding: 14px; text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+    .stat-number { font-size: 22px; font-weight: 700; }
+    .stat-label  { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    @media (max-width: 600px) {
+      .stats-bar { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <div class="admin-container">
+    <div style="padding:20px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px" id="page-title"></div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px">View and update all customer orders</div>
+      </div>
+      <a href="../index.html" class="btn btn-outline" style="text-decoration:none;display:flex;align-items:center;gap:6px" id="view-store-btn"></a>
+    </div>
+
+    <!-- Nav -->
+    <div class="nav-links">
+      <a href="admin.html"              class="nav-link" id="products-link"></a>
+      <a href="admin-orders.html"       class="nav-link active" id="orders-link"></a>
+      <a href="admin-crop-prices.html"  class="nav-link" id="crops-link"></a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-number" id="stat-total" style="color:var(--text)">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-placed" style="color:#3B82F6">0</div><div class="stat-label">Placed</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-confirmed" style="color:#8B5CF6">0</div><div class="stat-label">Confirmed</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-shipped" style="color:#F59E0B">0</div><div class="stat-label">Shipped</div></div>
+      <div class="stat-card"><div class="stat-number" id="stat-delivered" style="color:#22C55E">0</div><div class="stat-label">Delivered</div></div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filters">
+      <button class="filter-tab active" onclick="filterOrders('ALL', this)">All</button>
+      <button class="filter-tab" onclick="filterOrders('PLACED', this)" id="tab-placed"></button>
+      <button class="filter-tab" onclick="filterOrders('CONFIRMED', this)" id="tab-confirmed"></button>
+      <button class="filter-tab" onclick="filterOrders('SHIPPED', this)" id="tab-shipped"></button>
+      <button class="filter-tab" onclick="filterOrders('DELIVERED', this)" id="tab-delivered"></button>
+      <button class="filter-tab" onclick="filterOrders('CANCELLED', this)" id="tab-cancelled"></button>
+    </div>
+
+    <!-- Orders list -->
+    <div id="orders-list">
+      <div class="loading">Loading orders...</div>
+    </div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+
+    let allOrders = [];
+
+    const STATUS_COLORS = {
+      PLACED:    "#3B82F6",
+      CONFIRMED: "#8B5CF6",
+      SHIPPED:   "#F59E0B",
+      DELIVERED: "#22C55E",
+      CANCELLED: "#EF4444",
+    };
+
+    window.onload = async () => {
+      if (!isLoggedIn()) { window.location.href = "login.html"; return; }
+      const user = getUser();
+      if (user.role !== "ADMIN") { alert("Access denied!"); window.location.href = "../index.html"; return; }
+
+      renderHeader("../");
+      renderDrawer("../");
+
+      document.getElementById("page-title").innerHTML    = `${icon("package", 20)} Orders`;
+      document.getElementById("view-store-btn").innerHTML = `${icon("globe", 14)} View Store`;
+      document.getElementById("products-link").innerHTML  = `${icon("box", 14)} Products`;
+      document.getElementById("orders-link").innerHTML    = `${icon("package", 14)} Orders`;
+      document.getElementById("crops-link").innerHTML     = `${icon("trending-up", 14)} Crop Prices`;
+      document.getElementById("tab-placed").innerHTML     = `${icon("clipboard-list", 13)} Placed`;
+      document.getElementById("tab-confirmed").innerHTML  = `${icon("check-circle", 13)} Confirmed`;
+      document.getElementById("tab-shipped").innerHTML    = `${icon("truck", 13)} Shipped`;
+      document.getElementById("tab-delivered").innerHTML  = `${icon("package-check", 13)} Delivered`;
+      document.getElementById("tab-cancelled").innerHTML  = `${icon("x-circle", 13)} Cancelled`;
+      refreshIcons();
+
+      await loadOrders();
+    };
+
+    const loadOrders = async () => {
+      const data = await apiCall("/orders");
+      if (!data.success) {
+        document.getElementById("orders-list").innerHTML = `<div class="empty-state"><p>Could not load orders!</p></div>`;
+        return;
+      }
+      allOrders = data.orders;
+      updateStats();
+      renderOrders(allOrders);
+    };
+
+    const updateStats = () => {
+      document.getElementById("stat-total").textContent     = allOrders.length;
+      document.getElementById("stat-placed").textContent    = allOrders.filter(o => o.status === "PLACED").length;
+      document.getElementById("stat-confirmed").textContent = allOrders.filter(o => o.status === "CONFIRMED").length;
+      document.getElementById("stat-shipped").textContent   = allOrders.filter(o => o.status === "SHIPPED").length;
+      document.getElementById("stat-delivered").textContent = allOrders.filter(o => o.status === "DELIVERED").length;
+    };
+
+    const filterOrders = (status, btn) => {
+      document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      const filtered = status === "ALL" ? allOrders : allOrders.filter(o => o.status === status);
+      renderOrders(filtered);
+    };
+
+    const renderOrders = (orders) => {
+      const list = document.getElementById("orders-list");
+
+      if (orders.length === 0) {
+        list.innerHTML = `<div class="empty-state"><p>No orders found!</p></div>`;
+        return;
+      }
+
+      list.innerHTML = orders.map(o => `
+        <div class="order-card" id="order-${o.id}">
+          <div class="order-header">
+            <div>
+              <div class="order-id">Order #${o.id.slice(0, 8).toUpperCase()}</div>
+              <div class="order-date">
+                ${new Date(o.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </div>
+              ${o.user ? `
+                <div class="order-customer">
+                  ${icon("user", 12)} ${o.user.name} · ${o.user.email}
+                  ${o.user.phone ? `· ${o.user.phone}` : ""}
+                </div>
+              ` : ""}
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              <span class="status-badge" style="background:${STATUS_COLORS[o.status]}">${o.status}</span>
+              <span style="font-size:11px;color:var(--muted)">${o.paymentMode || "COD"}</span>
+            </div>
+          </div>
+
+          <div class="order-items-list">
+            ${o.items.map(item => `
+              <div class="order-item-row">
+                <span>${item.product?.name || "Product"} × ${item.quantity}</span>
+                <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="order-footer">
+            <div>
+              <div class="order-total">₹${o.totalAmount.toFixed(2)}</div>
+              <div class="order-address">${icon("map-pin", 11)} ${o.address}</div>
+            </div>
+
+            <!-- Status update controls -->
+            <div class="status-update">
+              <select class="status-select" id="status-${o.id}">
+                <option value="PLACED"    ${o.status === "PLACED"    ? "selected" : ""}>Placed</option>
+                <option value="CONFIRMED" ${o.status === "CONFIRMED" ? "selected" : ""}>Confirmed</option>
+                <option value="SHIPPED"   ${o.status === "SHIPPED"   ? "selected" : ""}>Shipped</option>
+                <option value="DELIVERED" ${o.status === "DELIVERED" ? "selected" : ""}>Delivered</option>
+                <option value="CANCELLED" ${o.status === "CANCELLED" ? "selected" : ""}>Cancelled</option>
+              </select>
+              <button class="btn-update-status" onclick="updateStatus('${o.id}')">
+                ${icon("check", 13)} Update
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+      refreshIcons();
+    };
+
+    const updateStatus = async (orderId) => {
+      const status = document.getElementById(`status-${orderId}`).value;
+      const data   = await apiCall(`/orders/${orderId}/status`, "PUT", { status });
+
+      if (data.success) {
+        showNotification(`Order updated to ${status}!`, "success", "check-circle");
+        // Update in local array without full reload
+        const idx = allOrders.findIndex(o => o.id === orderId);
+        if (idx !== -1) allOrders[idx].status = status;
+        updateStats();
+        // Update the badge in place
+        const card = document.getElementById(`order-${orderId}`);
+        if (card) {
+          const badge = card.querySelector(".status-badge");
+          if (badge) {
+            badge.textContent = status;
+            badge.style.background = STATUS_COLORS[status];
+          }
+        }
+      } else {
+        showNotification(data.message, "error", "x-circle");
+      }
+    };
+
+  </script>
+</body>
+</html>

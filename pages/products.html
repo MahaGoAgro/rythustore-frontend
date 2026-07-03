@@ -7,12 +7,113 @@
   <link rel="icon" href="../images/logo.png">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .filters-bar {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 56px;
+      z-index: 50;
+    }
+    .filter-chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .filter-chip.active {
+      background: var(--green700);
+      color: white;
+      border-color: var(--green700);
+    }
+    .sort-select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      background: white;
+      outline: none;
+      cursor: pointer;
+      margin-left: auto;
+    }
+    .sort-select:focus { border-color: var(--green500); }
+
+    .price-filter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .price-input {
+      width: 70px;
+      padding: 5px 8px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      outline: none;
+      color: var(--text);
+    }
+    .price-input:focus { border-color: var(--green500); }
+    .btn-apply-price {
+      background: var(--green700);
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .results-bar {
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .clear-filters {
+      font-size: 11px;
+      color: var(--green700);
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 44px 20px;
+      grid-column: 1 / -1;
+    }
+    .no-results-icon { color: var(--muted); display: flex; justify-content: center; margin-bottom: 12px; }
+    .no-results-title { font-size: 15px; font-weight: 600; color: var(--text); }
+    .no-results-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  </style>
 </head>
 <body>
 
   <div id="header-root"></div>
   <div id="drawer-root"></div>
 
+  <!-- Nav Tabs -->
   <nav class="nav-tabs">
     <a href="../index.html"                        class="nav-tab">Home</a>
     <a href="products.html?category=SEEDS"        class="nav-tab">Seeds</a>
@@ -21,15 +122,52 @@
     <a href="products.html?category=ORGANIC"      class="nav-tab">Organic</a>
   </nav>
 
+  <!-- Page header -->
   <div class="page-header">
     <div class="page-title" id="page-title">All Products</div>
-    <div id="product-count" style="color:var(--muted);font-size:13px;"></div>
   </div>
 
+  <!-- Search bar -->
   <div class="search-bar">
-    <input type="text" id="search-input" placeholder="Search products..." oninput="handleSearch(this.value)" />
+    <input type="text" id="search-input" placeholder="Search by name, brand or description..." oninput="handleSearch(this.value)" />
   </div>
 
+  <!-- Filters bar -->
+  <div class="filters-bar">
+    <!-- Category chips -->
+    <button class="filter-chip active" id="cat-all" onclick="setCategory('', this)">All</button>
+    <button class="filter-chip" id="cat-seeds"        onclick="setCategory('SEEDS', this)"></button>
+    <button class="filter-chip" id="cat-pesticides"   onclick="setCategory('PESTICIDES', this)"></button>
+    <button class="filter-chip" id="cat-insecticides" onclick="setCategory('INSECTICIDES', this)"></button>
+    <button class="filter-chip" id="cat-organic"      onclick="setCategory('ORGANIC', this)"></button>
+
+    <!-- Price range -->
+    <div class="price-filter">
+      ₹<input type="number" class="price-input" id="min-price" placeholder="Min" />
+      –
+      <input type="number" class="price-input" id="max-price" placeholder="Max" />
+      <button class="btn-apply-price" onclick="applyPriceFilter()">Go</button>
+    </div>
+
+    <!-- Sort -->
+    <select class="sort-select" id="sort-select" onchange="loadProducts()">
+      <option value="rating">Top Rated</option>
+      <option value="newest">Newest</option>
+      <option value="price_asc">Price: Low to High</option>
+      <option value="price_desc">Price: High to Low</option>
+      <option value="discount">Biggest Discount</option>
+    </select>
+  </div>
+
+  <!-- Results bar -->
+  <div class="results-bar">
+    <span id="results-count"></span>
+    <span class="clear-filters" id="clear-filters" onclick="clearAllFilters()">
+      <span id="clear-icon"></span> Clear filters
+    </span>
+  </div>
+
+  <!-- Products grid -->
   <div class="products-grid" id="products-grid">
     <div class="loading">Loading products...</div>
   </div>
@@ -42,50 +180,126 @@
   <script src="../js/header-drawer.js"></script>
   <script>
 
+    let activeCategory = "";
+    let activeSearch   = "";
+    let activeMinPrice = "";
+    let activeMaxPrice = "";
+    let searchTimer;
+
     window.onload = async () => {
       renderHeader("../");
       renderDrawer("../");
       updateCartCount();
+
+      // Set category icons
+      document.getElementById("cat-seeds").innerHTML        = `${icon("sprout", 12)} Seeds`;
+      document.getElementById("cat-pesticides").innerHTML   = `${icon("shield", 12)} Pesticides`;
+      document.getElementById("cat-insecticides").innerHTML = `${icon("bug", 12)} Insecticides`;
+      document.getElementById("cat-organic").innerHTML      = `${icon("leaf", 12)} Organic`;
+      document.getElementById("clear-icon").innerHTML       = icon("x", 12);
+      refreshIcons();
+
+      // Read category from URL
+      const urlCategory = new URLSearchParams(window.location.search).get("category");
+      if (urlCategory) {
+        activeCategory = urlCategory;
+        const btn = document.getElementById(`cat-${urlCategory.toLowerCase()}`);
+        if (btn) {
+          document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+          btn.classList.add("active");
+        }
+        document.getElementById("page-title").textContent = {
+          SEEDS: "Seeds", PESTICIDES: "Pesticides",
+          INSECTICIDES: "Insecticides", ORGANIC: "Organic Products"
+        }[urlCategory] || "Products";
+      }
+
+      await loadProducts();
+    };
+
+    const setCategory = (category, btn) => {
+      activeCategory = category;
+      document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+      btn.classList.add("active");
       loadProducts();
-      setActiveTab();
     };
 
-    const getCategory = () => new URLSearchParams(window.location.search).get("category");
-
-    const setActiveTab = () => {
-      const category = getCategory();
-      document.querySelectorAll(".nav-tab").forEach(tab => {
-        if (category && tab.href.includes(category)) tab.classList.add("active");
-        else if (!category && tab.href.includes("index.html")) tab.classList.add("active");
-      });
-      const titles = { SEEDS:"Seeds", PESTICIDES:"Pesticides", INSECTICIDES:"Insecticides", ORGANIC:"Organic Products" };
-      if (category) document.getElementById("page-title").textContent = titles[category] || "All Products";
+    const handleSearch = (value) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        activeSearch = value;
+        loadProducts();
+      }, 400);
     };
 
-    const loadProducts = async (search = "") => {
-      const grid     = document.getElementById("products-grid");
-      const category = getCategory();
+    const applyPriceFilter = () => {
+      activeMinPrice = document.getElementById("min-price").value;
+      activeMaxPrice = document.getElementById("max-price").value;
+      loadProducts();
+    };
+
+    const clearAllFilters = () => {
+      activeCategory = "";
+      activeSearch   = "";
+      activeMinPrice = "";
+      activeMaxPrice = "";
+      document.getElementById("search-input").value  = "";
+      document.getElementById("min-price").value     = "";
+      document.getElementById("max-price").value     = "";
+      document.getElementById("sort-select").value   = "rating";
+      document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+      document.getElementById("cat-all").classList.add("active");
+      loadProducts();
+    };
+
+    const loadProducts = async () => {
+      const grid = document.getElementById("products-grid");
       grid.innerHTML = '<div class="loading">Loading products...</div>';
 
-      let data;
-      if (search)         data = await searchProducts(search);
-      else if (category)  data = await getProductsByCategory(category);
-      else                data = await getProducts();
+      const sort = document.getElementById("sort-select").value;
 
-      if (!data.success || data.products.length === 0) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>No products found!</p></div>`;
+      const params = new URLSearchParams();
+      if (activeCategory) params.set("category", activeCategory);
+      if (activeSearch)   params.set("search",   activeSearch);
+      if (activeMinPrice) params.set("minPrice",  activeMinPrice);
+      if (activeMaxPrice) params.set("maxPrice",  activeMaxPrice);
+      if (sort)           params.set("sort",      sort);
+
+      const data = await apiCall(`/products?${params.toString()}`);
+
+      // Show/hide clear filters button
+      const hasFilters = activeCategory || activeSearch || activeMinPrice || activeMaxPrice;
+      const clearEl    = document.getElementById("clear-filters");
+      clearEl.style.display = hasFilters ? "flex" : "none";
+
+      if (!data.success) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Could not load products!</p></div>`;
+        document.getElementById("results-count").textContent = "";
         return;
       }
 
-      document.getElementById("product-count").textContent = `${data.count} items`;
+      const count = data.count;
+      document.getElementById("results-count").textContent = `${count} product${count !== 1 ? "s" : ""} found`;
+
+      if (count === 0) {
+        grid.innerHTML = `
+          <div class="no-results">
+            <div class="no-results-icon">${icon("search", 40)}</div>
+            <div class="no-results-title">No products found</div>
+            <div class="no-results-sub">
+              Try adjusting your search or filters
+            </div>
+            <button class="btn btn-outline" onclick="clearAllFilters()" style="margin-top:16px;width:auto;display:inline-flex;align-items:center;gap:6px">
+              ${icon("x", 14)} Clear all filters
+            </button>
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+
       grid.innerHTML = data.products.map(p => renderProductCard(p)).join("");
       refreshIcons();
-    };
-
-    let searchTimer;
-    const handleSearch = (value) => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => loadProducts(value), 400);
     };
 
   </script>

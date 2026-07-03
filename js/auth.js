@@ -15,13 +15,21 @@ const login = async (email, password) => {
   return data;
 };
 
-// Logout user
-const logout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  window.location.href = window.location.pathname.includes("/pages/")
-    ? "../index.html"
-    : "index.html";
+// Logout user — invalidates token on server first
+const logout = async () => {
+  try {
+    // Tell backend to increment tokenVersion — invalidates this token immediately
+    await apiCall("/auth/logout", "POST");
+  } catch (err) {
+    // Even if server call fails, clear local storage anyway
+    console.log("Logout server call failed:", err);
+  } finally {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = window.location.pathname.includes("/pages/")
+      ? "../index.html"
+      : "index.html";
+  }
 };
 
 // Get current logged-in user from localStorage

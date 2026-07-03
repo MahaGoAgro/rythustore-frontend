@@ -121,6 +121,10 @@
       </div>
       <a href="../index.html" class="btn btn-outline" id="view-store-btn" style="text-decoration:none;display:flex;align-items:center;gap:6px"></a>
       <a href="admin-crop-prices.html" class="btn btn-outline" style="text-decoration:none;display:flex;align-items:center;gap:6px" id="crop-prices-link"></a>
+      <a href="admin-orders.html" class="btn btn-outline"
+         style="text-decoration:none;display:flex;align-items:center;gap:6px"
+        id="orders-link">
+      </a>
     </div>
 
     <div class="stats-bar">
@@ -342,7 +346,6 @@
 
       document.getElementById("admin-title").innerHTML    = `${icon("settings", 22)} Admin Panel`;
       document.getElementById("view-store-btn").innerHTML = `${icon("globe", 16)} View Store`;
-
       document.getElementById("form-icon").innerHTML      = icon("plus", 18);
       document.getElementById("remove-img-btn").innerHTML = `${icon("x", 14)} Remove Image`;
       document.getElementById("submit-btn").innerHTML     = `${icon("plus", 16)} Add Product`;
@@ -353,7 +356,7 @@
       document.getElementById("bestseller-label").innerHTML = `${icon("trophy", 14)} Mark as Bestseller`;
       document.getElementById("flashsale-label").innerHTML  = `${icon("zap", 14)} Flash Sale Ends At`;
       document.getElementById("crop-prices-link").innerHTML =`${icon("trending-up", 14)} Crop Prices`;
-  
+      document.getElementById("orders-link").innerHTML =`${icon("package", 14)} Orders`;
 
       refreshIcons();
 

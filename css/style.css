@@ -381,9 +381,8 @@ img { max-width: 100%; display: block; }
 .product-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 7px;
-  gap: 6px;
+  margin-top: 8px;
+  gap: 8px;
 }
 
 .product-price {

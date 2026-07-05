@@ -97,9 +97,9 @@ const renderProductCard = (product) => {
             </div>
           </div>
 
-          <!-- Quantity selector + Add button -->
-          <div style="display:flex;align-items:center;gap:5px;">
-            <div class="qty-selector">
+          <!-- Qty + Add on full width row below price -->
+          <div style="display:flex;align-items:center;gap:6px;margin-top:8px;width:100%">
+            <div class="qty-selector" style="flex-shrink:0">
               <button
                 class="qty-btn"
                 onclick="event.stopPropagation(); setQty('${product.id}', -1)">
@@ -114,8 +114,9 @@ const renderProductCard = (product) => {
             </div>
             <button
               class="btn-add-cart"
+              style="flex:1;width:100%"
               onclick="event.stopPropagation(); handleAddToCartClick(this)">
-              Add
+              Add to Cart
             </button>
           </div>
         </div>
@@ -140,3 +141,5 @@ const goToProduct = (id) => {
     ? `pages/product.html?id=${id}`
     : `product.html?id=${id}`;
 };
+
+

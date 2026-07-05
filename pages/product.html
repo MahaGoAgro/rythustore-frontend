@@ -690,19 +690,8 @@
       refreshIcons();
     };
 
-    const showNotification = (message, type = "success", iconName = null) => {
-      const existing = document.getElementById("notification");
-      if (existing) existing.remove();
-      const defaultIcon = type === "error" ? "x-circle" : "check-circle";
-      const useIcon = iconName || defaultIcon;
-      const notification = document.createElement("div");
-      notification.id = "notification";
-      notification.className = `notification ${type}`;
-      notification.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">${icon(useIcon, 16)} ${message}</span>`;
-      document.body.appendChild(notification);
-      refreshIcons();
-      setTimeout(() => notification.remove(), 3000);
-    };
+    
+    
   </script>
 </body>
 </html>

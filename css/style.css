@@ -55,6 +55,7 @@ img { max-width: 100%; display: block; }
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  z-index: 100;
 }
 
 .logo {
@@ -380,7 +381,7 @@ img { max-width: 100%; display: block; }
 
 .product-footer {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   margin-top: 8px;
   gap: 8px;
 }
@@ -451,6 +452,7 @@ img { max-width: 100%; display: block; }
   white-space: nowrap;
   min-height: 32px;
   touch-action: manipulation;
+  width: 100%;
 }
 
 .btn-add-cart:active { background: var(--green900); }

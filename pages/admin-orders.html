@@ -125,7 +125,8 @@
       <div class="loading">Loading orders...</div>
     </div>
   </div>
-
+  
+  <script src="../js/i18n.js"></script>
   <script src="../js/icons.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
@@ -150,6 +151,7 @@
 
       renderHeader("../");
       renderDrawer("../");
+      if (typeof applyLanguage === "function") applyLanguage();
 
       document.getElementById("page-title").innerHTML    = `${icon("package", 20)} Orders`;
       document.getElementById("view-store-btn").innerHTML = `${icon("globe", 14)} View Store`;

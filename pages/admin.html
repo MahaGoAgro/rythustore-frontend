@@ -263,7 +263,7 @@
 
     </div>
   </div>
-
+  <script src="../js/i18n.js"></script>
   <script src="../js/icons.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
@@ -343,6 +343,7 @@
       }
       renderHeader("../");
       renderDrawer("../");
+      if (typeof applyLanguage === "function") applyLanguage();
 
       document.getElementById("admin-title").innerHTML    = `${icon("settings", 22)} Admin Panel`;
       document.getElementById("view-store-btn").innerHTML = `${icon("globe", 16)} View Store`;

@@ -68,7 +68,7 @@ const renderProductCard = (product) => {
                 "☆".repeat(5 - Math.ceil(product.rating));
 
   return `
-    <div class="product-card" data-product='${JSON.stringify(product).replace(/'/g, "&#39;")}'>
+    <div class="product-card" data-product='${JSON.stringify(product).replace(/'/g, "&#39;")}' onclick="goToProduct('${product.id}')">
 
       <div class="product-image">
         ${imageHTML}
@@ -131,4 +131,13 @@ const handleAddToCartClick = (btn) => {
   const product = JSON.parse(card.dataset.product.replace(/&#39;/g, "'"));
   const qty     = getQty(product.id);
   addToCart(product.id, product.name, product, qty);
+};
+
+const goToProduct = (id) => {
+  // Navigate to product detail page
+  // Works from both products.html (pages/) and index.html (root)
+  const isRoot = !window.location.pathname.includes("/pages/");
+  window.location.href = isRoot
+    ? `pages/product.html?id=${id}`
+    : `product.html?id=${id}`;
 };

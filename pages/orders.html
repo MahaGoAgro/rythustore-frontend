@@ -23,7 +23,7 @@
 
   <div class="orders-container">
     <div class="page-header" style="padding:20px 0">
-      <div class="page-title">My Orders</div>
+      <div class="page-title" data-i18n="orders.title">My Orders</div>
       <div id="orders-count" style="color:var(--muted);font-size:13px;"></div>
     </div>
     <div id="orders-list">
@@ -31,6 +31,7 @@
     </div>
   </div>
 
+  <script src="../js/i18n.js"></script>
   <script src="../js/icons.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
@@ -43,6 +44,7 @@
       if (!isLoggedIn()) { window.location.href = "login.html"; return; }
       renderHeader("../");
       renderDrawer("../");
+      if (typeof applyLanguage === "function") applyLanguage();
       updateCartCount();
       loadOrders();
     };

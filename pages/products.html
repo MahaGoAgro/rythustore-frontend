@@ -124,12 +124,12 @@
 
   <!-- Page header -->
   <div class="page-header">
-    <div class="page-title" id="page-title">All Products</div>
+    <div class="page-title" id="page-title" data-i18n="products.title">All Products</div>
   </div>
 
   <!-- Search bar -->
   <div class="search-bar">
-    <input type="text" id="search-input" placeholder="Search by name, brand or description..." oninput="handleSearch(this.value)" />
+    <input type="text" id="search-input" data-i18n="products.search" placeholder="Search by name, brand or description..." oninput="handleSearch(this.value)" />
   </div>
 
   <!-- Filters bar -->
@@ -171,7 +171,8 @@
   <div class="products-grid" id="products-grid">
     <div class="loading">Loading products...</div>
   </div>
-
+  
+  <script src="../js/i18n.js"></script>
   <script src="../js/icons.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
@@ -189,6 +190,7 @@
     window.onload = async () => {
       renderHeader("../");
       renderDrawer("../");
+      if (typeof applyLanguage === "function") applyLanguage();
       updateCartCount();
 
       // Set category icons

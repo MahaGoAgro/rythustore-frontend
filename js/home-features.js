@@ -132,17 +132,7 @@ const loadWeather = async () => {
   refreshIcons();
 };
 
-// ════════════════════════════════════════════════
-// 3. LIVE CROP PRICE TICKER
-// ════════════════════════════════════════════════
-const CROP_PRICES = [
-  { name: "Wheat",  price: 2275, unit: "qtl", change: 1.2 },
-  { name: "Onion",  price: 1850, unit: "qtl", change: -2.4 },
-  { name: "Tomato", price: 890,  unit: "qtl", change: 3.1 },
-  { name: "Maize",  price: 1962, unit: "qtl", change: 0 },
-  { name: "Cotton", price: 6850, unit: "qtl", change: 0.8 },
-  { name: "Paddy",  price: 2040, unit: "qtl", change: -0.5 },
-];
+
 
 
 // ════════════════════════════════════════════════
@@ -474,23 +464,34 @@ const renderTestimonials = () => {
     showTestimonial(testimonialIdx);
   }, 5000);
 };
+// ── Safe render — prevents one failure breaking everything ──
+const safeRender = async (fn, sectionId) => {
+  try {
+    await fn();
+  } catch (err) {
+    console.error(`[RythuStore] Section ${sectionId} failed:`, err.message);
+    const el = document.getElementById(sectionId);
+    if (el) el.style.display = "none";
+  }
+};
 
 // ════════════════════════════════════════════════
 // Initialize everything
 // ════════════════════════════════════════════════
 const initHomeFeatures = () => {
-  // These don't need API calls — run immediately
-  renderGreeting();
-  renderTicker();
-  renderSeasonBanner();
-  renderCalendar();
-  renderTestimonials();
-  renderRecentlyViewed();
+  // These don't need API calls — run immediately, wrapped in safeRender
+  safeRender(renderGreeting,       "greeting-section");
+  safeRender(renderSeasonBanner,   "season-banner");
+  safeRender(renderCalendar,       "calendar-section");
+  safeRender(renderTestimonials,   "testimonial-section");
+  safeRender(renderRecentlyViewed, "recently-viewed-section");
 
-  // These need API calls — run in parallel
+  // These need API calls — run in parallel, each failure is isolated
   Promise.all([
-    loadWeather(),
-    renderFlashSale(),
-    renderBestsellers(),
+    safeRender(loadWeather,        "weather-section"),
+    safeRender(renderTicker,       "ticker-track"),
+    safeRender(renderFlashSale,    "flash-sale-section"),
+    safeRender(renderBestsellers,  "bestseller-section"),
+    safeRender(renderNews,         "news-section"),
   ]);
 };

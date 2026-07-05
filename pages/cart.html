@@ -23,7 +23,7 @@
 
   <div class="cart-container">
     <div class="page-header" style="padding:20px 0">
-      <div class="page-title">My Cart</div>
+      <div class="page-title" data-i18n="cart.title">My Cart</div>
       <button class="btn btn-outline" onclick="handleClearCart()" id="clear-btn" style="display:none">Clear Cart</button>
     </div>
 
@@ -33,13 +33,14 @@
 
     <div class="cart-summary" id="cart-summary" style="display:none">
       <div class="cart-total">
-        <span>Total Amount</span>
+        <span data-i18n="cart.total">Total Amount</span>
         <span id="cart-total">₹0</span>
       </div>
-      <button class="btn btn-primary" onclick="goToCheckout()">Proceed to Checkout</button>
+      <button class="btn btn-primary" onclick="goToCheckout()" data-i18n="cart.checkout">Proceed to Checkout</button>
     </div>
   </div>
 
+  <script src="../js/i18n.js"></script>
   <script src="../js/icons.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
@@ -51,6 +52,7 @@
       if (!isLoggedIn()) { window.location.href = "login.html"; return; }
       renderHeader("../");
       renderDrawer("../");
+      if (typeof applyLanguage === "function") applyLanguage();
       loadCart();
     };
 
@@ -69,7 +71,7 @@
         cartItemsEl.innerHTML = `
           <div class="empty-state">
             <p>Your cart is empty!</p>
-            <a href="products.html" style="color:var(--green700);font-weight:700;margin-top:12px;display:block">
+            <a href="products.html" style="color:var(--green700);font-weight:700;margin-top:12px;display:block" data-i18n="cart.browse">
               Browse Products →
             </a>
           </div>`;

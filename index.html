@@ -24,7 +24,6 @@
     .banner-dots { position: absolute; bottom: 11px; right: 16px; display: flex; gap: 5px; }
     .banner-dot { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.35); cursor: pointer; transition: all 0.3s; width: 5px; }
     .banner-dot.active { width: 16px; background: rgba(255,255,255,0.9); }
-
     .category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; padding: 16px 14px; }
     .category-card {
       background: white; border-radius: 13px; padding: 15px 6px; text-align: center; cursor: pointer;
@@ -33,7 +32,6 @@
     .category-card:hover { box-shadow: var(--shadow-md); }
     .category-icon { color: var(--green700); display: flex; justify-content: center; }
     .category-name { font-size: 10px; font-weight: 600; color: var(--text); margin-top: 7px; }
-
     .news-section { padding: 0 14px 26px; }
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
     .section-title { font-size: 16px; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:7px; }
@@ -87,17 +85,17 @@
 
   <!-- Nav Tabs -->
   <nav class="nav-tabs">
-    <a href="index.html"                              class="nav-tab active">Home</a>
-    <a href="pages/products.html?category=SEEDS"       class="nav-tab">Seeds</a>
-    <a href="pages/products.html?category=PESTICIDES"  class="nav-tab">Pesticides</a>
-    <a href="pages/products.html?category=INSECTICIDES"class="nav-tab">Insecticides</a>
-    <a href="pages/products.html?category=ORGANIC"     class="nav-tab">Organic</a>
+    <a href="index.html"                               class="nav-tab active" data-i18n="nav.home">Home</a>
+    <a href="pages/products.html?category=SEEDS"       class="nav-tab" data-i18n="nav.seeds">Seeds</a>
+    <a href="pages/products.html?category=PESTICIDES"  class="nav-tab" data-i18n="nav.pesticides">Pesticides</a>
+    <a href="pages/products.html?category=INSECTICIDES"class="nav-tab" data-i18n="nav.insecticides">Insecticides</a>
+    <a href="pages/products.html?category=ORGANIC"     class="nav-tab" data-i18n="nav.organic">Organic</a>
   </nav>
 
   <!-- Category Grid -->
   <div class="category-grid" id="category-grid"></div>
 
-  <!-- Flash Sale (only shows if real flash sale products exist) -->
+  <!-- Flash Sale -->
   <div class="home-section" id="flash-sale-section" style="display:none"></div>
 
   <!-- Season Banner -->
@@ -117,7 +115,7 @@
     </div>
   </div>
 
-  <!-- Bestsellers (only shows if admin has marked any) -->
+  <!-- Bestsellers -->
   <div class="home-section" id="bestseller-section" style="display:none">
     <div class="home-section-title" id="bestseller-title"></div>
     <div class="mini-products-grid" id="bestseller-grid"></div>
@@ -146,6 +144,7 @@
     <div id="news-list"></div>
   </div>
 
+  <script src="js/i18n.js"></script>
   <script src="js/icons.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
@@ -159,7 +158,6 @@
       { title:"New Organic Range",      sub:"100% natural inputs, certified and trusted", cta:"Explore",  bg:"linear-gradient(135deg,#04342C 0%,#0F6E56 55%,#1D9E75 100%)", iconName:"leaf", link:"pages/products.html?category=ORGANIC" },
       { title:"Drone Spraying Service", sub:"Book precision spraying for your fields",   cta:"Book now", bg:"linear-gradient(135deg,#26215C 0%,#534AB7 55%,#7F77DD 100%)", iconName:"send", link:"pages/products.html" },
     ];
-
     const NEWS = [
       { tag:"Policy",        title:"Government raises MSP for Kharif crops by 8%",             time:"2 hours ago", read:"3 min", iconName:"clipboard-list" },
       { tag:"Weather Alert", title:"IMD predicts above-normal rainfall in northwest India",      time:"5 hours ago", read:"2 min", iconName:"cloud-rain" },
@@ -167,16 +165,13 @@
       { tag:"Market",        title:"Onion prices surge 30% as supply tightens",                 time:"Yesterday",   read:"3 min", iconName:"trending-up" },
       { tag:"Research",      title:"New drought-resistant wheat variety shows 25% higher yield", time:"2 days ago",  read:"5 min", iconName:"wheat" },
     ];
-
     const CATEGORIES = [
-      { key:"SEEDS",        label:"Seeds",        iconName:"sprout" },
-      { key:"PESTICIDES",   label:"Pesticides",   iconName:"shield" },
-      { key:"INSECTICIDES", label:"Insecticides", iconName:"bug" },
-      { key:"ORGANIC",      label:"Organic",      iconName:"leaf" },
+      { key:"SEEDS",        label:"seeds",        i18n:"nav.seeds",        iconName:"sprout" },
+      { key:"PESTICIDES",   label:"Pesticides",   i18n:"nav.pesticides",   iconName:"shield" },
+      { key:"INSECTICIDES", label:"Insecticides", i18n:"nav.insecticides", iconName:"bug" },
+      { key:"ORGANIC",      label:"Organic",      i18n:"nav.organic",      iconName:"leaf" },
     ];
-
     let bannerIdx = 0;
-
     const showBanner = (idx) => {
       const b = BANNERS[idx];
       document.getElementById("banner").style.background  = b.bg;
@@ -190,7 +185,6 @@
       });
       refreshIcons();
     };
-
     const initBanner = () => {
       const dotsEl = document.getElementById("banner-dots");
       BANNERS.forEach((_, i) => {
@@ -202,16 +196,15 @@
       showBanner(0);
       setInterval(() => { bannerIdx = (bannerIdx + 1) % BANNERS.length; showBanner(bannerIdx); }, 3500);
     };
-
     const renderCategories = () => {
       document.getElementById("category-grid").innerHTML = CATEGORIES.map(c => `
         <a href="pages/products.html?category=${c.key}" class="category-card">
           <div class="category-icon">${icon(c.iconName, 26)}</div>
-          <div class="category-name">${c.label}</div>
+          <div class="category-name" data-i18n="${c.i18n}">${c.label}</div>
         </a>
       `).join("");
+      if (typeof applyLanguage === "function") applyLanguage();
     };
-
     const renderNews = () => {
       document.getElementById("news-section-title").innerHTML = `${icon("newspaper", 18)} Agri News`;
       document.getElementById("news-list").innerHTML = NEWS.map(n => `
@@ -228,7 +221,6 @@
         </div>
       `).join("");
     };
-
     window.onload = () => {
       renderHeader("");
       renderDrawer("");
@@ -236,11 +228,10 @@
       renderCategories();
       initBanner();
       renderNews();
-
-      document.getElementById("bestseller-title").innerHTML = `${icon("trophy", 17)} Bestsellers`;
-      document.getElementById("recently-viewed-title").innerHTML = `${icon("eye", 17)} Recently Viewed`;
-
+      document.getElementById("bestseller-title").innerHTML      = `${icon("trophy", 17)} <span data-i18n="home.bestsellers">Bestsellers</span>`;
+      document.getElementById("recently-viewed-title").innerHTML  = `${icon("eye", 17)} <span data-i18n="home.recently_viewed">Recently Viewed</span>`;
       refreshIcons();
+      if (typeof applyLanguage === "function") applyLanguage();
       initHomeFeatures();
     };
   </script>

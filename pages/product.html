@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product — RythuStore</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .product-detail-container { max-width: 680px; margin: 0 auto; padding: 0 0 40px; }
+
+    /* ── Image section ── */
+    .product-image-section {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      position: relative;
+      overflow: hidden;
+    }
+    .product-image-section img {
+      width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      padding: 16px;
+    }
+    .product-image-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      width: 100%;
+      height: 280px;
+      background: var(--surface);
+    }
+    .product-badge-img {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: var(--green700);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .product-discount-img {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: #A32D2D;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── Info section ── */
+    .product-info-section {
+      background: white;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .product-category-tag {
+      display: inline-block;
+      background: var(--green100);
+      color: var(--green700);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 8px;
+    }
+    .product-detail-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .product-detail-brand {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .product-rating-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stars-display {
+      color: #F59E0B;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+    .rating-count {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .product-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .product-detail-price {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--green700);
+    }
+    .product-detail-original {
+      font-size: 15px;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+    .product-detail-unit {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .savings-text {
+      font-size: 12px;
+      color: #16A34A;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    /* ── Quantity + buttons ── */
+    .add-section {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 16px;
+    }
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+    .qty-control button {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--surface);
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--green700);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qty-control span {
+      font-size: 15px;
+      font-weight: 700;
+      min-width: 24px;
+      text-align: center;
+    }
+    .btn-add-detail {
+      flex: 1;
+      background: white;
+      color: var(--green700);
+      border: 2px solid var(--green700);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-add-detail:hover { background: var(--green50); }
+    .btn-buy-now {
+      flex: 1;
+      background: var(--green700);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-buy-now:hover { background: var(--green900); }
+
+    /* ── Detail sections ── */
+    .detail-section {
+      background: white;
+      margin-top: 10px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-section-header {
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      justify-content: space-between;
+    }
+    .detail-section-body {
+      padding: 0 16px 16px;
+    }
+    .detail-table { width: 100%; border-collapse: collapse; }
+    .detail-table tr { border-bottom: 1px solid var(--surface); }
+    .detail-table tr:last-child { border-bottom: none; }
+    .detail-table td {
+      padding: 8px 4px;
+      font-size: 13px;
+      vertical-align: top;
+    }
+    .detail-table td:first-child {
+      color: var(--muted);
+      width: 40%;
+      font-weight: 500;
+    }
+    .detail-table td:last-child { color: var(--text); font-weight: 600; }
+
+    /* ── Reviews ── */
+    .review-summary {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .review-avg {
+      text-align: center;
+    }
+    .review-avg-number {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+    .review-avg-stars { font-size: 18px; color: #F59E0B; margin: 4px 0; }
+    .review-avg-count { font-size: 11px; color: var(--muted); }
+    .review-bars { flex: 1; }
+    .review-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+    .review-bar-label { width: 24px; color: var(--muted); font-weight: 600; text-align: right; }
+    .review-bar-track { flex: 1; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+    .review-bar-fill  { height: 100%; background: #F59E0B; border-radius: 3px; transition: width 0.5s; }
+    .review-bar-count { width: 20px; color: var(--muted); font-size: 11px; }
+
+    .review-card {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .review-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .review-card-name  { font-weight: 700; font-size: 13px; color: var(--text); }
+    .review-card-date  { font-size: 11px; color: var(--muted); }
+    .review-card-stars { color: #F59E0B; font-size: 13px; margin-bottom: 5px; }
+    .review-card-text  { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+    .review-form {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+    .review-form-title { font-weight: 700; font-size: 14px; margin-bottom: 12px; color: var(--text); }
+    .star-picker {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .star-btn {
+      font-size: 28px;
+      cursor: pointer;
+      color: var(--border);
+      border: none;
+      background: none;
+      padding: 0;
+      transition: color 0.15s, transform 0.1s;
+      line-height: 1;
+    }
+    .star-btn.active { color: #F59E0B; }
+    .star-btn:hover  { transform: scale(1.15); }
+    .review-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      color: var(--text);
+      background: white;
+      box-sizing: border-box;
+    }
+    .review-textarea:focus { border-color: var(--green500); }
+
+    /* ── Similar products ── */
+    .similar-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 0 16px 4px;
+      scrollbar-width: none;
+    }
+    .similar-scroll::-webkit-scrollbar { display: none; }
+    .similar-card {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 10px;
+      flex-shrink: 0;
+      width: 130px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: box-shadow 0.15s;
+    }
+    .similar-card:hover { box-shadow: var(--shadow-md); }
+    .similar-card-img {
+      height: 80px;
+      background: white;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .similar-card-img img { width: 100%; height: 100%; object-fit: contain; }
+    .similar-card-name  { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 3px; }
+    .similar-card-price { font-size: 12px; font-weight: 700; color: var(--green700); }
+  </style>
+</head>
+<body>
+
+  <div id="header-root"></div>
+  <div id="drawer-root"></div>
+
+  <div class="product-detail-container">
+    <div id="product-content">
+      <div class="loading" style="padding:60px 20px;text-align:center">Loading product...</div>
+    </div>
+  </div>
+
+  <script src="../js/icons.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/header-drawer.js"></script>
+  <script>
+    let currentProduct = null;
+    let selectedRating = 0;
+    let qty = 1;
+
+    const productId = new URLSearchParams(window.location.search).get("id");
+
+    window.onload = async () => {
+      renderHeader("../");
+      renderDrawer("../");
+      updateCartCount();
+
+      if (!productId) {
+        document.getElementById("product-content").innerHTML = `
+          <div class="empty-state" style="padding:60px 20px">
+            <p>Product not found!</p>
+            <a href="products.html" class="btn btn-primary" style="margin-top:16px;text-decoration:none;display:inline-block">Browse Products</a>
+          </div>`;
+        return;
+      }
+
+      await loadProduct();
+    };
+
+    const loadProduct = async () => {
+      const [productData, reviewsData] = await Promise.all([
+        apiCall(`/products/${productId}`),
+        apiCall(`/reviews/${productId}`),
+      ]);
+
+      if (!productData.success) {
+        document.getElementById("product-content").innerHTML = `<div class="empty-state" style="padding:60px 20px"><p>Product not found!</p></div>`;
+        return;
+      }
+
+      currentProduct = productData.product;
+      document.title = `${currentProduct.name} — RythuStore`;
+
+      renderProduct(currentProduct, reviewsData);
+      loadSimilarProducts(currentProduct.category);
+    };
+
+    const renderProduct = (p, reviewsData) => {
+      const savings = p.originalPrice && p.originalPrice > p.price
+        ? `You save ₹${(p.originalPrice - p.price).toFixed(0)} (${p.discount}%)`
+        : "";
+
+      const stars = (n) => "★".repeat(n) + "☆".repeat(5 - n);
+
+      document.getElementById("product-content").innerHTML = `
+
+        <!-- Image -->
+        <div class="product-image-section">
+          ${p.imageUrl
+            ? `<img src="${p.imageUrl}" alt="${p.name}" />`
+            : `<div class="product-image-placeholder">${icon("sprout", 80)}</div>`
+          }
+          ${p.badge    ? `<span class="product-badge-img">${p.badge}</span>` : ""}
+          ${p.discount > 0 ? `<span class="product-discount-img">${p.discount}% OFF</span>` : ""}
+        </div>
+
+        <!-- Info -->
+        <div class="product-info-section">
+          <span class="product-category-tag">${p.category}</span>
+          <div class="product-detail-name">${p.name}</div>
+          <div class="product-detail-brand">by ${p.brand}</div>
+
+          <div class="product-rating-row">
+            <span class="stars-display">${stars(Math.round(p.rating || 0))}</span>
+            <span style="font-weight:700;font-size:13px;color:var(--text)">${p.rating || 0}</span>
+            <span class="rating-count">(${reviewsData.count || 0} reviews)</span>
+          </div>
+
+          <div class="product-price-row">
+            <span class="product-detail-price">₹${p.price}</span>
+            <span class="product-detail-unit">/ ${p.unit}</span>
+            ${p.originalPrice ? `<span class="product-detail-original">₹${p.originalPrice}</span>` : ""}
+          </div>
+          ${savings ? `<div class="savings-text">${icon("tag", 12)} ${savings}</div>` : ""}
+
+          ${!p.inStock ? `
+            <div style="background:#FEF2F2;color:#991B1B;padding:10px 12px;border-radius:8px;font-size:13px;font-weight:600;margin-top:10px">
+              ${icon("x-circle", 14)} Out of Stock
+            </div>
+          ` : `
+            <div class="add-section">
+              <div class="qty-control">
+                <button onclick="changeQty(-1)">−</button>
+                <span id="qty-display">1</span>
+                <button onclick="changeQty(1)">+</button>
+              </div>
+              <button class="btn-add-detail" onclick="handleAddToCart()">
+                ${icon("shopping-cart", 16)} Add to Cart
+              </button>
+              <button class="btn-buy-now" onclick="handleBuyNow()">
+                ${icon("zap", 16)} Buy Now
+              </button>
+            </div>
+          `}
+        </div>
+
+        <!-- Product Details -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            ${icon("info", 16)} Product Details
+          </div>
+          <div class="detail-section-body">
+            <table class="detail-table">
+              <tr><td>Brand</td><td>${p.brand}</td></tr>
+              <tr><td>Category</td><td>${p.category}</td></tr>
+              <tr><td>Unit</td><td>${p.unit}</td></tr>
+              ${p.badge ? `<tr><td>Badge</td><td>${p.badge}</td></tr>` : ""}
+              <tr><td>Availability</td><td>${p.inStock ? "In Stock" : "Out of Stock"}</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Description -->
+        ${p.desc ? `
+          <div class="detail-section">
+            <div class="detail-section-header">
+              ${icon("file-text", 16)} Description
+            </div>
+            <div class="detail-section-body" style="font-size:13px;color:var(--text-secondary);line-height:1.7">
+              ${p.desc.replace(/\n/g, "<br>")}
+            </div>
+          </div>
+        ` : ""}
+
+        <!-- Reviews -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            ${icon("star", 16)} Customer Reviews
+            <span style="font-size:12px;font-weight:400;color:var(--muted)">${reviewsData.count} reviews</span>
+          </div>
+          <div class="detail-section-body">
+
+            ${reviewsData.count > 0 ? `
+              <!-- Rating summary -->
+              <div class="review-summary">
+                <div class="review-avg">
+                  <div class="review-avg-number">${reviewsData.avgRating}</div>
+                  <div class="review-avg-stars">${stars(Math.round(reviewsData.avgRating))}</div>
+                  <div class="review-avg-count">${reviewsData.count} ratings</div>
+                </div>
+                <div class="review-bars">
+                  ${[5,4,3,2,1].map(n => `
+                    <div class="review-bar-row">
+                      <span class="review-bar-label">${n}★</span>
+                      <div class="review-bar-track">
+                        <div class="review-bar-fill" style="width:${reviewsData.count ? (reviewsData.breakdown[n] || 0) / reviewsData.count * 100 : 0}%"></div>
+                      </div>
+                      <span class="review-bar-count">${reviewsData.breakdown[n] || 0}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
+
+            <!-- Write a review -->
+            ${isLoggedIn() ? `
+              <div class="review-form">
+                <div class="review-form-title">${icon("edit-3", 14)} Write a Review</div>
+                <div class="star-picker" id="star-picker">
+                  ${[1,2,3,4,5].map(n => `
+                    <button class="star-btn" data-rating="${n}" onclick="setRating(${n})">★</button>
+                  `).join("")}
+                </div>
+                <textarea class="review-textarea" id="review-text" placeholder="Share your experience with this product..."></textarea>
+                <button class="btn btn-primary" onclick="submitReview()" style="margin-top:10px">
+                  Submit Review
+                </button>
+              </div>
+            ` : `
+              <div style="text-align:center;padding:16px 0;margin-bottom:16px">
+                <a href="login.html" style="color:var(--green700);font-weight:700;font-size:13px">Login to write a review</a>
+              </div>
+            `}
+
+            <!-- Reviews list -->
+            <div id="reviews-list">
+              ${reviewsData.reviews?.map(r => renderReviewCard(r)).join("") || ""}
+            </div>
+
+            ${reviewsData.count === 0 ? `
+              <div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px">
+                No reviews yet — be the first to review!
+              </div>
+            ` : ""}
+          </div>
+        </div>
+
+        <!-- Similar products -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            ${icon("grid", 16)} Similar Products
+          </div>
+          <div class="similar-scroll" id="similar-products">
+            <div style="padding:10px;color:var(--muted);font-size:12px">Loading...</div>
+          </div>
+        </div>
+
+      `;
+
+      refreshIcons();
+    };
+
+    const renderReviewCard = (r) => {
+      const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+      const isOwn = getUser()?.id === r.userId;
+      return `
+        <div class="review-card">
+          <div class="review-card-header">
+            <div>
+              <div class="review-card-name">${r.user?.name || "User"}</div>
+              <div class="review-card-date">${new Date(r.createdAt).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" })}</div>
+            </div>
+            ${isOwn ? `
+              <button onclick="deleteReview()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;display:flex;align-items:center;gap:3px">
+                ${icon("trash-2", 12)} Delete
+              </button>
+            ` : ""}
+          </div>
+          <div class="review-card-stars">${stars}</div>
+          <div class="review-card-text">${r.comment}</div>
+        </div>
+      `;
+    };
+
+    // ── Quantity controls ──────────────────────
+    const changeQty = (delta) => {
+      qty = Math.max(1, Math.min(99, qty + delta));
+      document.getElementById("qty-display").textContent = qty;
+    };
+
+    // ── Add to cart ────────────────────────────
+    const handleAddToCart = () => {
+      addToCart(currentProduct.id, currentProduct.name, currentProduct, qty);
+    };
+
+    // ── Buy now ────────────────────────────────
+    const handleBuyNow = async () => {
+      await addToCart(currentProduct.id, currentProduct.name, currentProduct, qty);
+      setTimeout(() => window.location.href = "cart.html", 500);
+    };
+
+    // ── Star rating picker ─────────────────────
+    const setRating = (n) => {
+      selectedRating = n;
+      document.querySelectorAll(".star-btn").forEach(btn => {
+        btn.classList.toggle("active", parseInt(btn.dataset.rating) <= n);
+      });
+    };
+
+    // ── Submit review ──────────────────────────
+    const submitReview = async () => {
+      if (!selectedRating) {
+        showNotification("Please select a star rating!", "error", "star");
+        return;
+      }
+      const comment = document.getElementById("review-text").value.trim();
+      if (comment.length < 10) {
+        showNotification("Please write at least 10 characters!", "error", "edit-3");
+        return;
+      }
+
+      const data = await apiCall(`/reviews/${productId}`, "POST", { rating: selectedRating, comment });
+
+      if (data.success) {
+        showNotification("Review submitted! Thank you.", "success", "star");
+        await loadProduct(); // reload to show updated reviews
+      } else {
+        showNotification(data.message, "error", "x-circle");
+      }
+    };
+
+    // ── Delete review ──────────────────────────
+    const deleteReview = async () => {
+      if (!confirm("Delete your review?")) return;
+      const data = await apiCall(`/reviews/${productId}`, "DELETE");
+      if (data.success) {
+        showNotification("Review deleted!", "success", "trash-2");
+        await loadProduct();
+      }
+    };
+
+    // ── Similar products ───────────────────────
+    const loadSimilarProducts = async (category) => {
+      const data = await apiCall(`/products?category=${category}&sort=rating`);
+      const container = document.getElementById("similar-products");
+      if (!container) return;
+
+      const similar = data.products?.filter(p => p.id !== productId).slice(0, 8) || [];
+
+      if (similar.length === 0) {
+        container.innerHTML = `<div style="padding:10px;color:var(--muted);font-size:12px">No similar products found</div>`;
+        return;
+      }
+
+      container.innerHTML = similar.map(p => `
+        <a href="product.html?id=${p.id}" class="similar-card">
+          <div class="similar-card-img">
+            ${p.imageUrl
+              ? `<img src="${p.imageUrl}" alt="${p.name}" />`
+              : icon("sprout", 32)
+            }
+          </div>
+          <div class="similar-card-name">${p.name}</div>
+          <div class="similar-card-price">₹${p.price}/${p.unit}</div>
+        </a>
+      `).join("");
+      refreshIcons();
+    };
+
+    const showNotification = (message, type = "success", iconName = null) => {
+      const existing = document.getElementById("notification");
+      if (existing) existing.remove();
+      const defaultIcon = type === "error" ? "x-circle" : "check-circle";
+      const useIcon = iconName || defaultIcon;
+      const notification = document.createElement("div");
+      notification.id = "notification";
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">${icon(useIcon, 16)} ${message}</span>`;
+      document.body.appendChild(notification);
+      refreshIcons();
+      setTimeout(() => notification.remove(), 3000);
+    };
+  </script>
+</body>
+</html>

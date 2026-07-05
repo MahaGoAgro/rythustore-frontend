@@ -133,9 +133,8 @@ const handleAddToCartClick = (btn) => {
   addToCart(product.id, product.name, product, qty);
 };
 
+// ── Navigate to product detail page ───────────
 const goToProduct = (id) => {
-  // Navigate to product detail page
-  // Works from both products.html (pages/) and index.html (root)
   const isRoot = !window.location.pathname.includes("/pages/");
   window.location.href = isRoot
     ? `pages/product.html?id=${id}`

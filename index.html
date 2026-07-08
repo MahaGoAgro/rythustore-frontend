@@ -139,7 +139,7 @@
   <div class="news-section">
     <div class="section-header">
       <div class="section-title" id="news-section-title"></div>
-      <span style="font-size:12px;color:var(--green600);font-weight:600;cursor:pointer">View all →</span>
+      <span style="font-size:12px;color:var(--green600);font-weight:600;cursor:pointer" onclick="window.open('https://krishijagran.com', '_blank')">View all →</span>
     </div>
     <div id="news-list"></div>
   </div>
@@ -154,16 +154,9 @@
   <script src="js/home-features.js"></script>
   <script>
     const BANNERS = [
-      { title:"Monsoon Ready Sale",     sub:"Up to 40% off on all seeds and fertilizers", cta:"Shop now", bg:"linear-gradient(135deg,#173404 0%,#27500A 55%,#3B6D11 100%)", iconName:"cloud-rain", link:"pages/products.html" },
+      { title:"Monsoon Ready Sale",     sub:"Up to 40% off on all seeds and fertilizers", cta:"Shop Seeds", bg:"linear-gradient(135deg,#173404 0%,#27500A 55%,#3B6D11 100%)", iconName:"cloud-rain", link:"pages/products.html?category=SEEDS" },
       { title:"New Organic Range",      sub:"100% natural inputs, certified and trusted", cta:"Explore",  bg:"linear-gradient(135deg,#04342C 0%,#0F6E56 55%,#1D9E75 100%)", iconName:"leaf", link:"pages/products.html?category=ORGANIC" },
-      { title:"Drone Spraying Service", sub:"Book precision spraying for your fields",   cta:"Book now", bg:"linear-gradient(135deg,#26215C 0%,#534AB7 55%,#7F77DD 100%)", iconName:"send", link:"pages/products.html" },
-    ];
-    const NEWS = [
-      { tag:"Policy",        title:"Government raises MSP for Kharif crops by 8%",             time:"2 hours ago", read:"3 min", iconName:"clipboard-list" },
-      { tag:"Weather Alert", title:"IMD predicts above-normal rainfall in northwest India",      time:"5 hours ago", read:"2 min", iconName:"cloud-rain" },
-      { tag:"Technology",    title:"AI-powered soil testing kits now available at ₹499",        time:"Yesterday",   read:"4 min", iconName:"flask-conical" },
-      { tag:"Market",        title:"Onion prices surge 30% as supply tightens",                 time:"Yesterday",   read:"3 min", iconName:"trending-up" },
-      { tag:"Research",      title:"New drought-resistant wheat variety shows 25% higher yield", time:"2 days ago",  read:"5 min", iconName:"wheat" },
+      { title:"Crop Protection",        sub:"Keep your crops safe with trusted pesticides", cta:"Shop Now",  bg:"linear-gradient(135deg,#26215C 0%,#534AB7 55%,#7F77DD 100%)", iconName:"shield", link:"pages/products.html?category=PESTICIDES" },
     ];
     const CATEGORIES = [
       { key:"SEEDS",        label:"seeds",        i18n:"nav.seeds",        iconName:"sprout" },
@@ -205,21 +198,47 @@
       `).join("");
       if (typeof applyLanguage === "function") applyLanguage();
     };
-    const renderNews = () => {
+    const renderNews = async () => {
       document.getElementById("news-section-title").innerHTML = `${icon("newspaper", 18)} Agri News`;
-      document.getElementById("news-list").innerHTML = NEWS.map(n => `
-        <div class="news-card">
-          <div class="news-icon">${icon(n.iconName, 26)}</div>
-          <div>
-            <div style="display:flex;align-items:center;gap:7px">
-              <span class="news-tag">${n.tag}</span>
-              <span style="font-size:10px;color:var(--muted)">${n.time}</span>
+      const data = await apiCall("/news").catch(() => null);
+      if (!data || !data.success || !data.articles?.length) {
+        // fallback to hardcoded if API fails
+        const NEWS = [
+          { tag:"Policy",        title:"Government raises MSP for Kharif crops by 8%",              time:"2 hours ago", iconName:"clipboard-list" },
+          { tag:"Weather Alert", title:"IMD predicts above-normal rainfall in northwest India",       time:"5 hours ago", iconName:"cloud-rain" },
+          { tag:"Market",        title:"Onion prices surge 30% as supply tightens",                  time:"Yesterday",   iconName:"trending-up" },
+          { tag:"Research",      title:"New drought-resistant wheat variety shows 25% higher yield",  time:"2 days ago",  iconName:"wheat" },
+        ];
+        document.getElementById("news-list").innerHTML = NEWS.map(n => `
+          <div class="news-card">
+            <div class="news-icon">${icon(n.iconName, 26)}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <span class="news-tag">${n.tag}</span>
+                <span style="font-size:10px;color:var(--muted)">${n.time}</span>
+              </div>
+              <div class="news-title">${n.title}</div>
             </div>
-            <div class="news-title">${n.title}</div>
-            <div class="news-meta">${icon("book-open", 11)} ${n.read} read</div>
           </div>
-        </div>
+        `).join("");
+        refreshIcons();
+        return;
+      }
+      document.getElementById("news-list").innerHTML = data.articles.slice(0, 5).map(a => `
+        <a href="${a.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:block">
+          <div class="news-card">
+            <div class="news-icon">${icon("file-text", 26)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                <span class="news-tag">${a.source}</span>
+                <span style="font-size:10px;color:var(--muted)">${timeAgo(a.publishedAt)}</span>
+              </div>
+              <div class="news-title">${a.title}</div>
+            </div>
+          </div>
+        </a>
       `).join("");
+      refreshIcons();
     };
     window.onload = () => {
       renderHeader("");
@@ -227,7 +246,7 @@
       updateCartCount();
       renderCategories();
       initBanner();
-      renderNews();
+      renderNews(); // async - fetches from API
       document.getElementById("bestseller-title").innerHTML      = `${icon("trophy", 17)} <span data-i18n="home.bestsellers">Bestsellers</span>`;
       document.getElementById("recently-viewed-title").innerHTML  = `${icon("eye", 17)} <span data-i18n="home.recently_viewed">Recently Viewed</span>`;
       refreshIcons();

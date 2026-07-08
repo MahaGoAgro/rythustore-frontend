@@ -1394,3 +1394,14 @@ button, a, input, select {
   flex-shrink: 0;
   display: flex;
 }
+
+/* ── Testimonials ─────────────────────────────── */
+.testimonials-list { display:flex;flex-direction:column;gap:10px; }
+.testimonial-card-home { background:white;border-radius:14px;padding:14px;border:1px solid var(--border);box-shadow:var(--shadow-sm); }
+.testimonial-top { display:flex;align-items:center;gap:10px;margin-bottom:8px; }
+.testimonial-avatar { width:40px;height:40px;border-radius:50%;background:var(--green100);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden; }
+.testimonial-name-home { font-weight:700;font-size:13px;color:var(--text); }
+.testimonial-loc { font-size:11px;color:var(--muted); }
+.testimonial-stars-home { color:#F59E0B;font-size:13px;margin-bottom:6px; }
+.testimonial-text-home { font-size:13px;color:var(--text-secondary);line-height:1.5;font-style:italic; }
+.testimonial-crop-home { display:inline-flex;align-items:center;gap:4px;background:var(--green100);color:var(--green700);font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;margin-top:8px; }

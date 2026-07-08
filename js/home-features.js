@@ -419,96 +419,51 @@ const renderCalendar = () => {
 };
 
 // ════════════════════════════════════════════════
-// 9. FARMER TESTIMONIALS — dynamic from backend
-// Admin-added stories + auto-pulled 5-star reviews
+// 9. FARMER TESTIMONIALS
 // ════════════════════════════════════════════════
-const renderTestimonials = async () => {
+const TESTIMONIALS = [
+  { quote: "Using RythuStore seeds increased my yield by 40% this season.", name: "Ramesh Kumar", place: "Punjab" },
+  { quote: "Best quality pesticides at the lowest price I have found anywhere.", name: "Suresh Reddy", place: "Telangana" },
+  { quote: "Fast delivery and the organic range genuinely improved my soil health.", name: "Lakshmi Devi", place: "Andhra Pradesh" },
+];
+
+let testimonialIdx = 0;
+let testimonialInterval = null;
+
+const showTestimonial = (idx) => {
+  const el = document.getElementById("testimonial-content");
+  if (!el) return;
+  const t = TESTIMONIALS[idx];
+  el.style.opacity = 0;
+  setTimeout(() => {
+    el.innerHTML = `
+      <div style="display:flex;gap:3px;color:#F59E0B;margin-bottom:8px;">★★★★★</div>
+      <div style="font-size:13px;color:var(--text);font-style:italic;line-height:1.5;">"${t.quote}"</div>
+      <div style="font-size:12px;color:var(--green700);font-weight:700;margin-top:10px;">${t.name}, ${t.place}</div>
+    `;
+    el.style.opacity = 1;
+  }, 200);
+};
+
+const renderTestimonials = () => {
   const section = document.getElementById("testimonial-section");
   if (!section) return;
 
-  const data = await apiCall("/testimonials");
-
-  if (!data.success || !data.testimonials?.length) {
-    section.style.display = "none";
-    return;
-  }
-
-  section.style.display = "block";
   section.innerHTML = `
-    <div class="home-section-title">
-      ${icon("message-circle", 17)} What Farmers Say
-    </div>
-    <div class="testimonials-list">
-      ${data.testimonials.map(t => `
-        <div class="testimonial-card-home">
-          <div class="testimonial-top">
-            <div class="testimonial-avatar">
-              ${t.imageUrl
-                ? `<img src="${t.imageUrl}" alt="${t.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
-                : `<span style="font-size:20px">👨‍🌾</span>`
-              }
-            </div>
-            <div style="flex:1;min-width:0">
-              <div class="testimonial-name-home">${t.name}</div>
-              <div class="testimonial-loc">${t.location || "Andhra Pradesh"}</div>
-            </div>
-            ${t.isReview ? `<span style="background:#ECFDF5;color:#065F46;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0">✓ Verified</span>` : ""}
-          </div>
-          <div class="testimonial-stars-home">${"★".repeat(t.rating)}${"☆".repeat(5 - t.rating)}</div>
-          <div class="testimonial-text-home">"${t.message}"</div>
-          ${t.crop ? `<div class="testimonial-crop-home">${icon("sprout", 10)} ${t.crop}</div>` : ""}
-        </div>
-      `).join("")}
+    <div class="info-card-static">
+      <div class="info-card-title">${icon("users", 17)} Farmer Success Stories</div>
+      <div id="testimonial-content" style="transition:opacity 0.2s;"></div>
     </div>
   `;
   refreshIcons();
+
+  showTestimonial(0);
+  if (testimonialInterval) clearInterval(testimonialInterval);
+  testimonialInterval = setInterval(() => {
+    testimonialIdx = (testimonialIdx + 1) % TESTIMONIALS.length;
+    showTestimonial(testimonialIdx);
+  }, 5000);
 };
-// ════════════════════════════════════════════════
-// 10. AGRICULTURE NEWS — scraped from RSS feeds
-// ════════════════════════════════════════════════
-const timeAgo = (dateStr) => {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const hrs  = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  if (hrs < 1)  return "Just now";
-  if (hrs < 24) return `${hrs}h ago`;
-  if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString("en-IN", { day:"numeric", month:"short" });
-};
-
-const renderNews = async () => {
-  const newsListEl = document.getElementById("news-list");
-  if (!newsListEl) return;
-
-  const data = await apiCall("/news");
-
-  if (!data.success || !data.articles?.length) {
-    const newsSection = newsListEl.closest(".news-section");
-    if (newsSection) newsSection.style.display = "none";
-    return;
-  }
-
-  document.getElementById("news-section-title").innerHTML =
-    `${icon("newspaper", 18)} Agriculture News`;
-
-  newsListEl.innerHTML = data.articles.slice(0, 5).map(a => `
-    <a href="${a.url}" target="_blank" rel="noopener noreferrer"
-       style="text-decoration:none;display:block" class="news-card">
-      <div class="news-icon">${icon("file-text", 26)}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-          <span class="news-tag">${a.source}</span>
-          <span style="font-size:10px;color:var(--muted)">${timeAgo(a.publishedAt)}</span>
-        </div>
-        <div class="news-title">${a.title}</div>
-        ${a.description ? `<div class="news-meta">${a.description.slice(0,100)}...</div>` : ""}
-      </div>
-    </a>
-  `).join("");
-
-  refreshIcons();
-};
-
 // ── Safe render — prevents one failure breaking everything ──
 const safeRender = async (fn, sectionId) => {
   try {
@@ -524,19 +479,19 @@ const safeRender = async (fn, sectionId) => {
 // Initialize everything
 // ════════════════════════════════════════════════
 const initHomeFeatures = () => {
-  // These don't need API calls — run immediately
+  // These don't need API calls — run immediately, wrapped in safeRender
   safeRender(renderGreeting,       "greeting-section");
   safeRender(renderSeasonBanner,   "season-banner");
   safeRender(renderCalendar,       "calendar-section");
+  safeRender(renderTestimonials,   "testimonial-section");
   safeRender(renderRecentlyViewed, "recently-viewed-section");
 
   // These need API calls — run in parallel, each failure is isolated
   Promise.all([
-    safeRender(loadWeather,          "weather-section"),
-    safeRender(renderTicker,         "ticker-track"),
-    safeRender(renderFlashSale,      "flash-sale-section"),
-    safeRender(renderBestsellers,    "bestseller-section"),
-    safeRender(renderNews,           "news-section"),
-    safeRender(renderTestimonials,   "testimonial-section"), // now async API call
+    safeRender(loadWeather,        "weather-section"),
+    safeRender(renderTicker,       "ticker-track"),
+    safeRender(renderFlashSale,    "flash-sale-section"),
+    safeRender(renderBestsellers,  "bestseller-section"),
+    safeRender(renderNews,         "news-section"),
   ]);
 };

@@ -494,11 +494,12 @@
 
       if (data.success) {
         const msg = editingId ? "Product updated!" : "Product added!";
+        const savedId = data.product?.id || editingId;
         editingId = null;
         resetForm();
         await loadProducts();
         showNotification(msg, "success", "check-circle");
-        loadVariants(savedProduct.id);
+        if (savedId) loadVariants(savedId);
       } else {
         errorMsg.textContent   = data.message;
         errorMsg.style.display = "block";
@@ -549,6 +550,9 @@
       document.getElementById("submit-btn").innerHTML      = `${icon("save", 16)} Update Product`;
       document.getElementById("cancel-btn").style.display  = "block";
       refreshIcons();
+
+      // Load variants for this product
+      loadVariants(id);
 
       document.querySelector(".admin-form").scrollIntoView({ behavior: "smooth" });
     };
@@ -631,7 +635,8 @@ const deleteVariant = async (variantId) => {
     };
 
     const resetForm = () => {
-      editingId = null;
+      editingId        = null;
+      currentProductId = null;
       ["product-id","name","brand","originalPrice","price","discount","unit","desc","badge","rating","reviews","flashSaleEndsAt"].forEach(id => {
         document.getElementById(id).value = "";
       });
@@ -642,6 +647,7 @@ const deleteVariant = async (variantId) => {
       document.getElementById("form-title").textContent   = "Add New Product";
       document.getElementById("submit-btn").innerHTML     = `${icon("plus", 16)} Add Product`;
       document.getElementById("cancel-btn").style.display = "none";
+      document.getElementById("variants-section").style.display = "none"; // ← hide variants
       removeImage();
       refreshIcons();
     };

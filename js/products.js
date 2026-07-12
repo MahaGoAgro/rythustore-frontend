@@ -1,5 +1,5 @@
 // ── Products API Calls ─────────────────────────
-
+const productVariant = {};
 const getProducts = async () => {
   return await apiCall("/products");
 };
@@ -97,6 +97,18 @@ const renderProductCard = (product) => {
             </div>
           </div>
 
+          ${product.variants && product.variants.length > 0 ? `
+  <div class="variant-btns" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;">
+    ${product.variants.map((v, i) => `
+      <button
+        class="variant-btn ${i === 0 ? 'active' : ''}"
+        onclick="event.stopPropagation(); selectVariant('${product.id}', '${v.id}', '${v.size}', ${v.price}, this)">
+        ${v.size}
+      </button>
+    `).join("")}
+  </div>
+` : ""}
+
           <!-- Qty + Add on full width row below price -->
           <div style="display:flex;align-items:center;gap:6px;margin-top:8px;width:100%">
             <div class="qty-selector" style="flex-shrink:0">
@@ -131,7 +143,16 @@ const handleAddToCartClick = (btn) => {
   const card    = btn.closest(".product-card");
   const product = JSON.parse(card.dataset.product.replace(/&#39;/g, "'"));
   const qty     = getQty(product.id);
-  addToCart(product.id, product.name, product, qty);
+  const variant = productVariant[product.id];  // ← get selected variant
+
+  addToCart(
+    product.id,
+    product.name + (variant ? ` (${variant.size})` : ""),
+    product,
+    qty,
+    variant?.id,    // ← pass variantId
+    variant?.size   // ← pass variantSize
+  );
 };
 
 // ── Navigate to product detail page ───────────
@@ -140,6 +161,19 @@ const goToProduct = (id) => {
   window.location.href = isRoot
     ? `pages/product.html?id=${id}`
     : `product.html?id=${id}`;
+};
+
+const selectVariant = (productId, variantId, variantSize, variantPrice, btn) => {
+  productVariant[productId] = { id: variantId, size: variantSize, price: variantPrice };
+
+  // Update price display
+  const card = btn.closest(".product-card");
+  const priceEl = card.querySelector(".product-price");
+  if (priceEl) priceEl.textContent = `₹${variantPrice}`;
+
+  // Update active state on buttons
+  card.querySelectorAll(".variant-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
 };
 
 

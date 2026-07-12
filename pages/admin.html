@@ -242,6 +242,20 @@
           <button class="btn btn-outline" onclick="resetForm()" id="cancel-btn" style="display:none">Cancel</button>
         </div>
       </div>
+      <div id="variants-section" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+  <div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px" id="variants-title"></div>
+
+  <!-- Add variant form -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <input type="text"   id="v-size"  placeholder="100ml / 500g / 1L" style="flex:1;min-width:80px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit" />
+    <input type="number" id="v-price" placeholder="Price ₹" style="flex:1;min-width:80px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit" />
+    <input type="number" id="v-original" placeholder="MRP ₹" style="flex:1;min-width:80px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit" />
+    <button onclick="addVariant()" style="background:var(--green700);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap" id="add-variant-btn"></button>
+  </div>
+
+  <!-- Variants list -->
+  <div id="variants-list"></div>
+</div>
 
       <div class="admin-products">
         <div class="admin-products-header">
@@ -278,6 +292,7 @@
     let imageBase64  = null;
     let imageUrl     = null;
     let imagePublicId = null;
+    let currentProductId = null;
 
     const previewImage = async (input) => {
       const file = input.files[0];
@@ -483,6 +498,7 @@
         resetForm();
         await loadProducts();
         showNotification(msg, "success", "check-circle");
+        loadVariants(savedProduct.id);
       } else {
         errorMsg.textContent   = data.message;
         errorMsg.style.display = "block";
@@ -536,6 +552,74 @@
 
       document.querySelector(".admin-form").scrollIntoView({ behavior: "smooth" });
     };
+
+    
+const loadVariants = async (productId) => {
+  currentProductId = productId;
+  document.getElementById("variants-section").style.display = "block";
+  document.getElementById("variants-title").innerHTML =
+    `${icon("layers", 14)} Size Variants`;
+  document.getElementById("add-variant-btn").innerHTML =
+    `${icon("plus", 12)} Add`;
+  refreshIcons();
+
+  const data = await apiCall(`/variants/${productId}`);
+  renderVariantsList(data.variants || []);
+};
+
+const renderVariantsList = (variants) => {
+  const list = document.getElementById("variants-list");
+  if (!variants.length) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:8px 0">No variants yet. Add size options above.</div>`;
+    return;
+  }
+  list.innerHTML = variants.map(v => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface);border-radius:8px;margin-bottom:6px;">
+      <span style="font-weight:700;font-size:13px;min-width:60px">${v.size}</span>
+      <span style="color:var(--green700);font-weight:700;font-size:13px">₹${v.price}</span>
+      ${v.originalPrice ? `<span style="color:var(--muted);font-size:11px;text-decoration:line-through">₹${v.originalPrice}</span>` : ""}
+      ${v.discount > 0 ? `<span style="background:#FEF9C3;color:#A16207;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">${v.discount}% OFF</span>` : ""}
+      <button onclick="deleteVariant('${v.id}')" style="margin-left:auto;background:#FEE2E2;color:#DC2626;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">Delete</button>
+    </div>
+  `).join("");
+};
+
+const addVariant = async () => {
+  if (!currentProductId) return;
+  const size     = document.getElementById("v-size").value.trim();
+  const price    = parseFloat(document.getElementById("v-price").value);
+  const original = parseFloat(document.getElementById("v-original").value) || null;
+
+  if (!size || !price) {
+    alert("Please enter size and price!");
+    return;
+  }
+
+  const discount = original && original > price
+    ? Math.round((original - price) / original * 100)
+    : 0;
+
+  const data = await apiCall(`/variants/${currentProductId}`, "POST", {
+    size, price, originalPrice: original, discount
+  });
+
+  if (data.success) {
+    document.getElementById("v-size").value     = "";
+    document.getElementById("v-price").value    = "";
+    document.getElementById("v-original").value = "";
+    const varData = await apiCall(`/variants/${currentProductId}`);
+    renderVariantsList(varData.variants || []);
+  } else {
+    alert(data.message);
+  }
+};
+
+const deleteVariant = async (variantId) => {
+  if (!confirm("Delete this variant?")) return;
+  await apiCall(`/variants/${variantId}`, "DELETE");
+  const data = await apiCall(`/variants/${currentProductId}`);
+  renderVariantsList(data.variants || []);
+};
 
     const handleDelete = async (id, name) => {
       if (!confirm(`Delete "${name}"?\n\nThis cannot be undone!`)) return;

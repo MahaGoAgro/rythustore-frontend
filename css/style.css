@@ -1405,3 +1405,87 @@ button, a, input, select {
 .testimonial-stars-home { color:#F59E0B;font-size:13px;margin-bottom:6px; }
 .testimonial-text-home { font-size:13px;color:var(--text-secondary);line-height:1.5;font-style:italic; }
 .testimonial-crop-home { display:inline-flex;align-items:center;gap:4px;background:var(--green100);color:var(--green700);font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;margin-top:8px; }
+
+/* ── Product Variant Buttons ──────────────────── */
+.variant-btns {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.variant-btn {
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: white;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.variant-btn:hover {
+  border-color: var(--green600);
+  color: var(--green700);
+}
+
+.variant-btn.active {
+  background: var(--green700);
+  color: white;
+  border-color: var(--green700);
+}
+
+/* ── Variant selector on detail page ─────────── */
+.variant-selector-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.variant-selector-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.variant-option {
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  min-width: 70px;
+}
+
+.variant-option:hover { border-color: var(--green600); }
+
+.variant-option.active {
+  border-color: var(--green700);
+  background: var(--green50);
+}
+
+.variant-option-size {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.variant-option-price {
+  font-size: 12px;
+  color: var(--green700);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.variant-option-original {
+  font-size: 10px;
+  color: var(--muted);
+  text-decoration: line-through;
+}

@@ -5,7 +5,7 @@ const getCart = async () => {
 };
 
 // Add to cart — requires login, accepts quantity
-const addToCart = async (productId, productName, productData = null, quantity = 1) => {
+const addToCart = async (productId, productName, productData = null, quantity = 1, variantId = null, variantSize = null) => {
   if (!isLoggedIn()) {
     showNotification("Please login to add items to cart!", "error", "log-in");
     setTimeout(() => {
@@ -16,19 +16,21 @@ const addToCart = async (productId, productName, productData = null, quantity = 
     return;
   }
 
-  // Track for recently viewed
   if (productData && typeof trackRecentlyViewed === "function") {
     trackRecentlyViewed(productData);
   }
 
   const data = await apiCall("/cart/add", "POST", {
     productId,
-    quantity: Math.max(1, Math.min(99, quantity)), // clamp between 1-99
+    quantity: Math.max(1, Math.min(99, quantity)),
+    variantId:   variantId   || undefined,   // ← add this
+    variantSize: variantSize || undefined,   // ← add this
   });
 
   if (data.success) {
+    const sizeLabel = variantSize ? ` (${variantSize})` : "";
     showNotification(
-      `${productName} × ${quantity} added to cart!`,
+      `${productName}${sizeLabel} × ${quantity} added to cart!`,
       "success",
       "check-circle"
     );
